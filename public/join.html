@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Beehive Gameshow</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container join-container">
+        <header>
+            <h1>🐝 Beehive Gameshow</h1>
+            <p class="subtitle">Join the Game</p>
+        </header>
+
+        <div class="join-content">
+            <div id="joinForm" class="join-form">
+                <h2>Enter Your Name</h2>
+                <input type="text" id="playerName" placeholder="Your name" maxlength="50" autofocus>
+                <button id="joinBtn" class="btn btn-primary btn-large">Join Game</button>
+                <p id="errorMessage" class="error-message"></p>
+            </div>
+
+            <div id="successMessage" class="success-message" style="display: none;">
+                <div class="success-icon">✅</div>
+                <h2>Successfully Joined!</h2>
+                <p>Welcome, <strong id="joinedName"></strong>!</p>
+                <p>Wait for the host to assign teams.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/join.js"></script>
+</body>
+</html>

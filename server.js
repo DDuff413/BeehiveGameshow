@@ -16,7 +16,7 @@ app.use(express.static('public'));
 // In-memory storage
 let players = [];
 let teams = [];
-const sessionId = uuidv4();
+
 
 // Routes
 app.get('/', (req, res) => {
@@ -92,8 +92,12 @@ app.post('/api/teams/shuffle', (req, res) => {
         return res.status(400).json({ error: 'Valid team size is required' });
     }
 
-    // Shuffle players
-    const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
+    // Fisher-Yates shuffle algorithm for unbiased randomization
+    const shuffledPlayers = [...players];
+    for (let i = shuffledPlayers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledPlayers[i], shuffledPlayers[j]] = [shuffledPlayers[j], shuffledPlayers[i]];
+    }
     
     // Assign teams
     shuffledPlayers.forEach((player, index) => {

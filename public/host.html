@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beehive Gameshow - Host</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐝 Beehive Gameshow</h1>
+            <p class="subtitle">Host Dashboard</p>
+        </header>
+
+        <div class="main-content">
+            <!-- QR Code Section -->
+            <div class="qr-section">
+                <h2>Player Join</h2>
+                <div id="qrCodeContainer">
+                    <img id="qrCode" src="" alt="QR Code">
+                </div>
+                <p class="join-url">Scan to join or visit: <span id="joinUrl"></span></p>
+            </div>
+
+            <!-- Players List -->
+            <div class="players-section">
+                <h2>Players <span id="playerCount">(0)</span></h2>
+                <div id="playersList" class="players-list">
+                    <p class="empty-state">No players yet. Scan the QR code to join!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Management -->
+        <div class="team-management">
+            <h2>Team Assignment</h2>
+            
+            <div class="team-controls">
+                <div class="control-group">
+                    <button id="shuffleBtn" class="btn btn-primary" disabled>
+                        🎲 Random Shuffle
+                    </button>
+                    <input type="number" id="teamSize" min="1" value="2" placeholder="Team size">
+                </div>
+                
+                <button id="manualAssignBtn" class="btn btn-secondary" disabled>
+                    ✋ Manual Assign
+                </button>
+                
+                <button id="resetBtn" class="btn btn-danger">
+                    🔄 Reset All
+                </button>
+            </div>
+
+            <!-- Manual Assignment Interface (hidden by default) -->
+            <div id="manualAssignContainer" class="manual-assign-container" style="display: none;">
+                <h3>Assign players to teams:</h3>
+                <div id="manualAssignPlayers" class="assign-players-list"></div>
+                <button id="saveManualBtn" class="btn btn-success">Save Team Assignments</button>
+                <button id="cancelManualBtn" class="btn">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Teams Display -->
+        <div class="teams-section" id="teamsSection" style="display: none;">
+            <h2>Teams</h2>
+            <div id="teamsList" class="teams-list"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/host.js"></script>
+</body>
+</html>

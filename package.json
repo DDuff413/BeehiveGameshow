@@ -1,0 +1,40 @@
+{
+  "name": "beehivegameshow",
+  "version": "1.0.0",
+  "description": "This is an experiment in getting AI to create a gameshow style frontend, backend, and DB that can register players and organise them into assigned or random teams",
+  "type": "module",
+  "main": "server.ts",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "tsx watch server.ts",
+    "dev:frontend": "vite",
+    "build": "vite build",
+    "build:backend": "tsc -p tsconfig.server.json",
+    "start": "NODE_ENV=production tsx server.ts",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1",
+    "qrcode": "^1.5.4",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^6.2.1",
+    "@tsconfig/svelte": "^5.0.6",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.1",
+    "@types/qrcode": "^1.5.6",
+    "concurrently": "^9.2.1",
+    "svelte": "^5.45.6",
+    "svelte-check": "^4.3.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.7"
+  }
+}

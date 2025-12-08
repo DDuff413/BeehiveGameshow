@@ -17,3 +17,4 @@ if (typeof window !== 'undefined') {
   s.on('connect', () => socketConnected.set(true));
   s.on('disconnect', () => socketConnected.set(false));
 }
+

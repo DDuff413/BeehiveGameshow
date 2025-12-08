@@ -14,3 +14,4 @@ export interface PlayersUpdateData {
   players: Player[];
   teams: Team[];
 }
+

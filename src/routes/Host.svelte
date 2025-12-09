@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { getSocket } from '../lib/socket';
+  import { getSocket, socketConnected } from '../lib/socket';
   import type { Player, Team, PlayersUpdateData } from '../lib/types';
+  import ConnectionBanner from '../lib/ConnectionBanner.svelte';
 
   let players: Player[] = [];
   let teams: Team[] = [];
@@ -9,9 +10,24 @@
   let joinUrl = '';
   let teamSize = 2;
   let showManualAssign = false;
-  let manualAssignments: Record<string, number | null> = {};
+  let manualAssignments: Record<string, number> = {};
 
   const socket = getSocket();
+
+  // Helper function to safely parse error responses
+  async function getErrorMessage(response: Response, defaultMessage: string): Promise<string> {
+    const fallbackMessage = `${defaultMessage} (${response.status} ${response.statusText})`;
+    try {
+      const contentType = response.headers.get('content-type');
+      if (contentType?.toLowerCase().startsWith('application/json')) {
+        const data = await response.json();
+        return data.error || fallbackMessage;
+      }
+    } catch {
+      // If JSON parsing fails, fall through to fallback message
+    }
+    return fallbackMessage;
+  }
 
   onMount(async () => {
     // Load QR code
@@ -52,6 +68,11 @@
       return;
     }
 
+    if (!$socketConnected) {
+      alert('Cannot shuffle teams: Not connected to server');
+      return;
+    }
+
     try {
       const response = await fetch('/api/teams/shuffle', {
         method: 'POST',
@@ -60,18 +81,20 @@
       });
 
       if (!response.ok) {
-        throw new Error('Failed to shuffle teams');
+        const errorMessage = await getErrorMessage(response, 'Failed to shuffle teams');
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error shuffling teams:', error);
-      alert('Failed to shuffle teams');
+      alert(`Failed to shuffle teams: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   function showManualAssignment() {
     manualAssignments = {};
     players.forEach(player => {
-      manualAssignments[player.id] = player.team || 0;
+      // Initialize with current team assignments (0 for unassigned)
+      manualAssignments[player.id] = player.team;
     });
     showManualAssign = true;
   }
@@ -81,6 +104,11 @@
   }
 
   async function saveManualAssignments() {
+    if (!$socketConnected) {
+      alert('Cannot save teams: Not connected to server');
+      return;
+    }
+
     try {
       const response = await fetch('/api/teams/manual', {
         method: 'POST',
@@ -89,18 +117,24 @@
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save teams');
+        const errorMessage = await getErrorMessage(response, 'Failed to save teams');
+        throw new Error(errorMessage);
       }
 
       hideManualAssignment();
     } catch (error) {
       console.error('Error saving teams:', error);
-      alert('Failed to save teams');
+      alert(`Failed to save teams: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   async function handleReset() {
     if (!confirm('Are you sure you want to reset all players and teams?')) {
+      return;
+    }
+
+    if (!$socketConnected) {
+      alert('Cannot reset: Not connected to server');
       return;
     }
 
@@ -111,19 +145,22 @@
       });
 
       if (!response.ok) {
-        throw new Error('Failed to reset');
+        const errorMessage = await getErrorMessage(response, 'Failed to reset');
+        throw new Error(errorMessage);
       }
 
       hideManualAssignment();
     } catch (error) {
       console.error('Error resetting:', error);
-      alert('Failed to reset');
+      alert(`Failed to reset: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   $: hasPlayers = players.length > 0;
   $: hasTeams = teams.length > 0;
 </script>
+
+<ConnectionBanner />
 
 <div class="container">
   <header>
@@ -204,13 +241,21 @@
               <span class="player-name">{player.name}</span>
               <div class="team-selector">
                 <label>Team:</label>
-                <input 
-                  type="number" 
-                  min="0" 
+                <select 
                   bind:value={manualAssignments[player.id]}
                   class="team-input"
-                  placeholder="0 = unassigned"
                 >
+                  <option value={0}>Unassigned</option>
+                  {#each Array(10) as _, i}
+                    <option value={i + 1}>{i + 1}</option>
+                  {/each}
+                </select>
+                <button 
+                  class="btn-small" 
+                  on:click={() => manualAssignments[player.id] = 0}
+                >
+                  Clear
+                </button>
               </div>
             </div>
           {/each}

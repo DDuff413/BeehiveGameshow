@@ -8,6 +8,8 @@
     --border-color: #FFE082;
     --success-color: #4CAF50;
     --danger-color: #F44336;
+    --warning-color: #FF9800;
+    --info-color: #2196F3;
     --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -23,6 +25,60 @@ body {
     color: var(--text-color);
     min-height: 100vh;
     padding: 20px;
+}
+
+/* Connection Status Banner */
+.connection-banner {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 500;
+    z-index: 1000;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.connection-banner.error {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.connection-banner.warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.connection-banner.reconnecting {
+    background-color: var(--info-color);
+    color: white;
+}
+
+.connection-banner .banner-icon {
+    font-size: 1.2rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
 }
 
 .container {
@@ -211,6 +267,22 @@ h2 {
 
 .btn-danger:hover:not(:disabled) {
     background: #da190b;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    background: #e0e0e0;
+    color: var(--text-color);
+    transition: all 0.2s;
+}
+
+.btn-small:hover {
+    background: #bdbdbd;
 }
 
 input[type="number"],

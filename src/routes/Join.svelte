@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { socketConnected } from '../lib/socket';
+  import ConnectionBanner from '../lib/ConnectionBanner.svelte';
+  
   let playerName = '';
   let errorMessage = '';
   let isJoined = false;
@@ -10,6 +13,11 @@
     
     if (!name) {
       errorMessage = 'Please enter your name';
+      return;
+    }
+
+    if (!$socketConnected) {
+      errorMessage = 'Not connected to server. Please wait and try again.';
       return;
     }
     
@@ -33,7 +41,7 @@
       
     } catch (error) {
       console.error('Error joining game:', error);
-      errorMessage = 'Failed to join game. Please try again.';
+      errorMessage = error instanceof Error ? error.message : 'Failed to join game. Please try again.';
     }
   }
 
@@ -43,6 +51,8 @@
     }
   }
 </script>
+
+<ConnectionBanner />
 
 <div class="container join-container">
   <header>

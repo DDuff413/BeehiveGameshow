@@ -9,7 +9,7 @@
   let joinUrl = '';
   let teamSize = 2;
   let showManualAssign = false;
-  let manualAssignments: Record<string, number | null> = {};
+  let manualAssignments: Record<string, number> = {};
 
   const socket = getSocket();
 
@@ -92,7 +92,7 @@
   function showManualAssignment() {
     manualAssignments = {};
     players.forEach(player => {
-      // Preserve null values explicitly for the UI
+      // Initialize with current team assignments (0 for unassigned)
       manualAssignments[player.id] = player.team;
     });
     showManualAssign = true;
@@ -260,14 +260,14 @@
                   bind:value={manualAssignments[player.id]}
                   class="team-input"
                 >
-                  <option value={null}>-</option>
+                  <option value={0}>Unassigned</option>
                   {#each Array(10) as _, i}
                     <option value={i + 1}>{i + 1}</option>
                   {/each}
                 </select>
                 <button 
                   class="btn-small" 
-                  on:click={() => manualAssignments[player.id] = null}
+                  on:click={() => manualAssignments[player.id] = 0}
                 >
                   Clear
                 </button>

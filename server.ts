@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 interface Player {
   id: string;
   name: string;
-  team: number | null;
+  team: number;
   joinedAt: string;
 }
 
@@ -70,7 +70,7 @@ app.post('/api/players', (req: Request, res: Response) => {
   const player: Player = {
     id: uuidv4(),
     name: name.trim(),
-    team: null,
+    team: 0,
     joinedAt: new Date().toISOString()
   };
 
@@ -84,7 +84,7 @@ app.post('/api/players', (req: Request, res: Response) => {
 });
 
 app.post('/api/teams/manual', (req: Request, res: Response) => {
-  const { assignments } = req.body as { assignments: Record<string, number | null> };
+  const { assignments } = req.body as { assignments: Record<string, number> };
   
   players.forEach(player => {
     if (assignments[player.id] !== undefined) {
@@ -143,7 +143,7 @@ function createTeamsFromPlayers(): Team[] {
   const teamsMap: Record<number, Player[]> = {};
   
   players.forEach(player => {
-    if (player.team !== null) {
+    if (player.team !== 0) {
       if (!teamsMap[player.team]) {
         teamsMap[player.team] = [];
       }

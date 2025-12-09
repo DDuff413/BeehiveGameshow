@@ -79,7 +79,13 @@
       });
 
       if (!response.ok) {
-        const errorMessage = await getErrorMessage(response, 'Failed to shuffle teams');
+        let errorMessage = `Failed to shuffle teams (${response.status} ${response.statusText})`;
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch {
+          // Could not parse JSON, keep errorMessage as is
+        }
         throw new Error(errorMessage);
       }
     } catch (error) {
@@ -114,7 +120,13 @@
       });
 
       if (!response.ok) {
-        const errorMessage = await getErrorMessage(response, 'Failed to save teams');
+        let errorMessage = `Failed to save teams (${response.status} ${response.statusText})`;
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch {
+          // Could not parse JSON, keep errorMessage as is
+        }
         throw new Error(errorMessage);
       }
 
@@ -142,7 +154,13 @@
       });
 
       if (!response.ok) {
-        const errorMessage = await getErrorMessage(response, 'Failed to reset');
+        let errorMessage = `Failed to reset (${response.status} ${response.statusText})`;
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch {
+          // Could not parse JSON, keep errorMessage as is
+        }
         throw new Error(errorMessage);
       }
 

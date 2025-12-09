@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { socketConnected, socketError, socketReconnecting } from '../lib/socket';
+  
   let playerName = '';
   let errorMessage = '';
   let isJoined = false;
@@ -10,6 +12,11 @@
     
     if (!name) {
       errorMessage = 'Please enter your name';
+      return;
+    }
+
+    if (!$socketConnected) {
+      errorMessage = 'Not connected to server. Please wait and try again.';
       return;
     }
     
@@ -33,7 +40,7 @@
       
     } catch (error) {
       console.error('Error joining game:', error);
-      errorMessage = 'Failed to join game. Please try again.';
+      errorMessage = error instanceof Error ? error.message : 'Failed to join game. Please try again.';
     }
   }
 
@@ -43,6 +50,24 @@
     }
   }
 </script>
+
+<!-- Connection Status Banner -->
+{#if $socketError}
+  <div class="connection-banner error">
+    <span class="banner-icon">⚠️</span>
+    <span>{$socketError}</span>
+  </div>
+{:else if $socketReconnecting}
+  <div class="connection-banner reconnecting">
+    <span class="banner-icon">🔄</span>
+    <span>Reconnecting to server...</span>
+  </div>
+{:else if !$socketConnected}
+  <div class="connection-banner warning">
+    <span class="banner-icon">⏸️</span>
+    <span>Disconnected from server</span>
+  </div>
+{/if}
 
 <div class="container join-container">
   <header>

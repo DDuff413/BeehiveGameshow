@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { getSocket } from '../lib/socket';
+  import { getSocket, socketConnected, socketError, socketReconnecting } from '../lib/socket';
   import type { Player, Team, PlayersUpdateData } from '../lib/types';
 
   let players: Player[] = [];
@@ -52,6 +52,11 @@
       return;
     }
 
+    if (!$socketConnected) {
+      alert('Cannot shuffle teams: Not connected to server');
+      return;
+    }
+
     try {
       const response = await fetch('/api/teams/shuffle', {
         method: 'POST',
@@ -60,18 +65,19 @@
       });
 
       if (!response.ok) {
-        throw new Error('Failed to shuffle teams');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to shuffle teams');
       }
     } catch (error) {
       console.error('Error shuffling teams:', error);
-      alert('Failed to shuffle teams');
+      alert(`Failed to shuffle teams: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   function showManualAssignment() {
     manualAssignments = {};
     players.forEach(player => {
-      manualAssignments[player.id] = player.team || 0;
+      manualAssignments[player.id] = player.team;
     });
     showManualAssign = true;
   }
@@ -81,6 +87,11 @@
   }
 
   async function saveManualAssignments() {
+    if (!$socketConnected) {
+      alert('Cannot save teams: Not connected to server');
+      return;
+    }
+
     try {
       const response = await fetch('/api/teams/manual', {
         method: 'POST',
@@ -89,18 +100,24 @@
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save teams');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save teams');
       }
 
       hideManualAssignment();
     } catch (error) {
       console.error('Error saving teams:', error);
-      alert('Failed to save teams');
+      alert(`Failed to save teams: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   async function handleReset() {
     if (!confirm('Are you sure you want to reset all players and teams?')) {
+      return;
+    }
+
+    if (!$socketConnected) {
+      alert('Cannot reset: Not connected to server');
       return;
     }
 
@@ -111,19 +128,38 @@
       });
 
       if (!response.ok) {
-        throw new Error('Failed to reset');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to reset');
       }
 
       hideManualAssignment();
     } catch (error) {
       console.error('Error resetting:', error);
-      alert('Failed to reset');
+      alert(`Failed to reset: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   $: hasPlayers = players.length > 0;
   $: hasTeams = teams.length > 0;
 </script>
+
+<!-- Connection Status Banner -->
+{#if $socketError}
+  <div class="connection-banner error">
+    <span class="banner-icon">⚠️</span>
+    <span>{$socketError}</span>
+  </div>
+{:else if $socketReconnecting}
+  <div class="connection-banner reconnecting">
+    <span class="banner-icon">🔄</span>
+    <span>Reconnecting to server...</span>
+  </div>
+{:else if !$socketConnected}
+  <div class="connection-banner warning">
+    <span class="banner-icon">⏸️</span>
+    <span>Disconnected from server</span>
+  </div>
+{/if}
 
 <div class="container">
   <header>
@@ -206,11 +242,17 @@
                 <label>Team:</label>
                 <input 
                   type="number" 
-                  min="0" 
+                  min="1" 
                   bind:value={manualAssignments[player.id]}
                   class="team-input"
-                  placeholder="0 = unassigned"
+                  placeholder="Team number"
                 >
+                <button 
+                  class="btn-small" 
+                  on:click={() => manualAssignments[player.id] = null}
+                >
+                  Clear
+                </button>
               </div>
             </div>
           {/each}

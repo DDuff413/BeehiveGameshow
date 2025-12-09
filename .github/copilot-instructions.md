@@ -44,7 +44,7 @@ npm run build
 - **What it does**: Vite builds the Svelte frontend to `dist/` directory
 - **Time**: ~1 second (891ms typical)
 - **Output**: dist/index.html and bundled assets
-- **Warnings**: Produces two Svelte accessibility warnings (safe to ignore):
+- **Warnings**: Produces two Svelte accessibility warnings (application works, but should be addressed for better accessibility):
   - `a11y_label_has_associated_control` in Host.svelte:206
   - `a11y_autofocus` in Join.svelte:64
 
@@ -170,13 +170,15 @@ The `public/` folder contains older HTML/JS files (host.html, join.html, host.js
 
 **Warning: "A form label must be associated with a control"**
 - **Location**: Host.svelte:206
-- **Impact**: Accessibility warning only, does not affect functionality
-- **Action**: Can be ignored or fixed by adding `for` attribute to label
+- **Impact**: Affects screen reader users; does not break functionality but reduces accessibility
+- **Recommended fix**: Add `for` attribute to label or wrap input with label
+- **Action**: Should be fixed when working on accessibility improvements
 
 **Warning: "Avoid using autofocus"**
 - **Location**: Join.svelte:64
-- **Impact**: Accessibility recommendation, not a breaking issue
-- **Action**: Can be ignored or removed if accessibility is a priority
+- **Impact**: Can be disorienting for keyboard users; does not break functionality
+- **Recommended fix**: Remove autofocus attribute or implement more accessible focus management
+- **Action**: Should be fixed when working on accessibility improvements
 
 ### Validation Workflow
 Since there are no GitHub workflows, CI builds, or automated tests, validation is manual:

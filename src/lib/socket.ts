@@ -36,7 +36,7 @@ if (typeof window !== 'undefined') {
     if (reason === 'io server disconnect') {
       socketError.set('Server disconnected. Please refresh the page.');
     } else {
-      socketError.set('Connection lost. Attempting to reconnect...');
+      socketError.set(null);
       socketReconnecting.set(true);
     }
   });

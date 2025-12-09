@@ -19,7 +19,8 @@
       ) return;
 
       // Find the closest anchor element
-      let anchor = (event.target as HTMLElement).closest && (event.target as HTMLElement).closest('a');
+      if (!(event.target instanceof HTMLElement)) return;
+      const anchor = event.target.closest('a');
       if (!anchor) return;
 
       // Only handle anchors with href starting with '/' (internal links)

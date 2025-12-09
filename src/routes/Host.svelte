@@ -15,16 +15,17 @@
 
   // Helper function to safely parse error responses
   async function getErrorMessage(response: Response, defaultMessage: string): Promise<string> {
+    const fallbackMessage = `${defaultMessage} (${response.status} ${response.statusText})`;
     try {
       const contentType = response.headers.get('content-type');
       if (contentType?.toLowerCase().startsWith('application/json')) {
         const data = await response.json();
-        return data.error || defaultMessage;
+        return data.error || fallbackMessage;
       }
     } catch {
-      // If JSON parsing fails, fall through to default message
+      // If JSON parsing fails, fall through to fallback message
     }
-    return `${defaultMessage} (HTTP ${response.status})`;
+    return fallbackMessage;
   }
 
   onMount(async () => {
@@ -79,13 +80,7 @@
       });
 
       if (!response.ok) {
-        let errorMessage = `Failed to shuffle teams (${response.status} ${response.statusText})`;
-        try {
-          const data = await response.json();
-          errorMessage = data.error || errorMessage;
-        } catch {
-          // Could not parse JSON, keep errorMessage as is
-        }
+        const errorMessage = await getErrorMessage(response, 'Failed to shuffle teams');
         throw new Error(errorMessage);
       }
     } catch (error) {
@@ -120,13 +115,7 @@
       });
 
       if (!response.ok) {
-        let errorMessage = `Failed to save teams (${response.status} ${response.statusText})`;
-        try {
-          const data = await response.json();
-          errorMessage = data.error || errorMessage;
-        } catch {
-          // Could not parse JSON, keep errorMessage as is
-        }
+        const errorMessage = await getErrorMessage(response, 'Failed to save teams');
         throw new Error(errorMessage);
       }
 
@@ -154,13 +143,7 @@
       });
 
       if (!response.ok) {
-        let errorMessage = `Failed to reset (${response.status} ${response.statusText})`;
-        try {
-          const data = await response.json();
-          errorMessage = data.error || errorMessage;
-        } catch {
-          // Could not parse JSON, keep errorMessage as is
-        }
+        const errorMessage = await getErrorMessage(response, 'Failed to reset');
         throw new Error(errorMessage);
       }
 

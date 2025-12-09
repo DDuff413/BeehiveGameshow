@@ -140,8 +140,14 @@
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to reset');
+        let errorMessage = `Failed to reset (${response.status} ${response.statusText})`;
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch {
+          // Could not parse JSON, keep errorMessage as is
+        }
+        throw new Error(errorMessage);
       }
 
       hideManualAssignment();

@@ -44,6 +44,7 @@ if (typeof window !== 'undefined') {
   s.on('connect_error', (error) => {
     console.error('Socket.IO connection error:', error);
     socketError.set('Failed to connect to server. Please check your connection.');
+    socketReconnecting.set(false);
   });
   
   s.on('reconnect_attempt', (attemptNumber) => {

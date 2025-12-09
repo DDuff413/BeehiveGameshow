@@ -92,6 +92,7 @@
   function showManualAssignment() {
     manualAssignments = {};
     players.forEach(player => {
+      // Preserve null values explicitly for the UI
       manualAssignments[player.id] = player.team;
     });
     showManualAssign = true;
@@ -255,13 +256,15 @@
               <span class="player-name">{player.name}</span>
               <div class="team-selector">
                 <label>Team:</label>
-                <input 
-                  type="number" 
-                  min="1" 
+                <select 
                   bind:value={manualAssignments[player.id]}
                   class="team-input"
-                  placeholder="Team number"
                 >
+                  <option value={null}>-</option>
+                  {#each Array(10) as _, i}
+                    <option value={i + 1}>{i + 1}</option>
+                  {/each}
+                </select>
                 <button 
                   class="btn-small" 
                   on:click={() => manualAssignments[player.id] = null}

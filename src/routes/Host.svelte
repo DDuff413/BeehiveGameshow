@@ -69,7 +69,7 @@
         try {
           const data = await response.json();
           errorMessage = data.error || errorMessage;
-        } catch (jsonError) {
+        } catch {
           // Could not parse JSON, keep errorMessage as is
         }
         throw new Error(errorMessage);
@@ -110,7 +110,7 @@
         try {
           const data = await response.json();
           errorMessage = data.error || errorMessage;
-        } catch (jsonError) {
+        } catch {
           // Could not parse JSON, keep errorMessage as is
         }
         throw new Error(errorMessage);

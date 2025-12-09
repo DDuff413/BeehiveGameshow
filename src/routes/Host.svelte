@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { getSocket, socketConnected, socketError, socketReconnecting } from '../lib/socket';
+  import { getSocket, socketConnected } from '../lib/socket';
   import type { Player, Team, PlayersUpdateData } from '../lib/types';
+  import ConnectionBanner from '../lib/ConnectionBanner.svelte';
 
   let players: Player[] = [];
   let teams: Team[] = [];
@@ -159,23 +160,7 @@
   $: hasTeams = teams.length > 0;
 </script>
 
-<!-- Connection Status Banner -->
-{#if $socketError}
-  <div class="connection-banner error">
-    <span class="banner-icon">⚠️</span>
-    <span>{$socketError}</span>
-  </div>
-{:else if $socketReconnecting}
-  <div class="connection-banner reconnecting">
-    <span class="banner-icon">🔄</span>
-    <span>Reconnecting to server...</span>
-  </div>
-{:else if !$socketConnected}
-  <div class="connection-banner warning">
-    <span class="banner-icon">⏸️</span>
-    <span>Disconnected from server</span>
-  </div>
-{/if}
+<ConnectionBanner />
 
 <div class="container">
   <header>

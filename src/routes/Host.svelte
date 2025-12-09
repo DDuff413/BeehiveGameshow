@@ -13,6 +13,20 @@
 
   const socket = getSocket();
 
+  // Helper function to safely parse error responses
+  async function getErrorMessage(response: Response, defaultMessage: string): Promise<string> {
+    try {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        return data.error || defaultMessage;
+      }
+    } catch {
+      // If JSON parsing fails, fall through to default message
+    }
+    return `${defaultMessage} (HTTP ${response.status})`;
+  }
+
   onMount(async () => {
     // Load QR code
     try {
@@ -65,8 +79,8 @@
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to shuffle teams');
+        const errorMessage = await getErrorMessage(response, 'Failed to shuffle teams');
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error shuffling teams:', error);
@@ -100,8 +114,8 @@
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to save teams');
+        const errorMessage = await getErrorMessage(response, 'Failed to save teams');
+        throw new Error(errorMessage);
       }
 
       hideManualAssignment();
@@ -128,8 +142,8 @@
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to reset');
+        const errorMessage = await getErrorMessage(response, 'Failed to reset');
+        throw new Error(errorMessage);
       }
 
       hideManualAssignment();

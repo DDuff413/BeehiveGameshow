@@ -17,7 +17,7 @@
   async function getErrorMessage(response: Response, defaultMessage: string): Promise<string> {
     try {
       const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
+      if (contentType?.startsWith('application/json')) {
         const data = await response.json();
         return data.error || defaultMessage;
       }

@@ -65,8 +65,14 @@
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to shuffle teams');
+        let errorMessage = `Failed to shuffle teams (${response.status} ${response.statusText})`;
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch (jsonError) {
+          // Could not parse JSON, keep errorMessage as is
+        }
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error shuffling teams:', error);
@@ -100,8 +106,14 @@
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to save teams');
+        let errorMessage = `Failed to save teams (${response.status} ${response.statusText})`;
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch (jsonError) {
+          // Could not parse JSON, keep errorMessage as is
+        }
+        throw new Error(errorMessage);
       }
 
       hideManualAssignment();

@@ -65,8 +65,14 @@
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to shuffle teams');
+        let errorMessage = 'Failed to shuffle teams';
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch {
+          // Keep default error message if JSON parsing fails
+        }
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error shuffling teams:', error);

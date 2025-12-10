@@ -108,11 +108,8 @@
     isActionPending = true;
 
     try {
-      // Delete all rows
-      const { error } = await supabase
-        .from("players")
-        .delete()
-        .gt("joined_at", "2000-01-01T00:00:00Z"); // Delete all players joined after year 2000 (effectively all)
+      // Use RPC to clear the table cleanly
+      const { error } = await supabase.rpc("reset_game");
       if (error) throw error;
     } catch (error) {
       console.error("Reset failed:", error);

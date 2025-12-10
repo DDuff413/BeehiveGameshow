@@ -34,3 +34,12 @@ begin;
   create publication supabase_realtime;
 commit;
 alter publication supabase_realtime add table players;
+
+-- Function to reset the game (delete all players)
+create or replace function reset_game()
+returns void
+language sql
+security definer
+as $$
+  delete from players where true;
+$$;

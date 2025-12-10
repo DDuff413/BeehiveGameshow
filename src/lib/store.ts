@@ -54,6 +54,15 @@ export async function initializeStores() {
   if (error) {
     console.error("Error fetching players:", error);
     connectionStatus.set("error");
+
+    // Attempt retry if under limit
+    if (retryCount < MAX_RETRIES) {
+      retryCount++;
+      console.log(
+        `Fetch failed. Retrying in 5s... (${retryCount}/${MAX_RETRIES})`
+      );
+      setTimeout(initializeStores, 5000);
+    }
     return;
   }
 

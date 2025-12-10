@@ -37,7 +37,7 @@
       joinedName = name;
     } catch (error) {
       console.error("Error joining game:", error);
-      errorMessage = "Failed to join game. Please try again.";
+      errorMessage = `Failed to join: ${error instanceof Error ? error.message : JSON.stringify(error)}`;
     } finally {
       isSubmitting = false;
     }

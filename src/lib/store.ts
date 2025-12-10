@@ -35,6 +35,8 @@ function updateTeams(allPlayers: Player[]) {
 
 // Track initialization to prevent duplicate subscriptions
 let subscription: RealtimeChannel | null = null;
+let retryCount = 0;
+const MAX_RETRIES = 2; // Total 3 attempts (1 initial + 2 retries)
 
 // Initial Fetch & Realtime Subscription
 export async function initializeStores() {
@@ -97,6 +99,7 @@ export async function initializeStores() {
     .subscribe((status) => {
       if (status === "SUBSCRIBED") {
         connectionStatus.set("connected");
+        retryCount = 0; // Reset retries on success
       } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
         console.error("Realtime subscription error:", status);
         connectionStatus.set("error");
@@ -104,6 +107,20 @@ export async function initializeStores() {
         if (subscription) {
           subscription.unsubscribe();
           subscription = null;
+        }
+
+        // Attempt reconnection after 5 seconds if under limit
+        if (retryCount < MAX_RETRIES) {
+          retryCount++;
+          console.log(
+            `Attempting reconnection in 5 seconds... (Attempt ${retryCount}/${MAX_RETRIES})`
+          );
+          setTimeout(() => {
+            initializeStores();
+          }, 5000);
+        } else {
+          console.error("Max reconnection attempts reached. Giving up.");
+          // We remain in 'error' state, maybe we could set a 'failed' state if we wanted distinct UI
         }
       }
     });

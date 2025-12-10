@@ -1,19 +1,24 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
-  import { players, teams, connectionStatus, initializeStores } from '../lib/store';
-  import { supabase } from '../lib/supabase';
-  import ConnectionBanner from '../lib/ConnectionBanner.svelte';
-  import QRCode from 'qrcode';
+  import { onMount, onDestroy } from "svelte";
+  import {
+    players,
+    teams,
+    connectionStatus,
+    initializeStores,
+  } from "../lib/store";
+  import { supabase } from "../lib/supabase";
+  import ConnectionBanner from "../lib/ConnectionBanner.svelte";
+  import QRCode from "qrcode";
 
-  let qrCode = '';
-  let joinUrl = '';
+  let qrCode = "";
+  let joinUrl = "";
   let teamSize = 2;
   let showManualAssign = false;
   let manualAssignments: Record<string, number> = {};
   let isActionPending = false;
 
   // Reactive connection status for the banner
-  $: isConnected = $connectionStatus === 'connected';
+  $: isConnected = $connectionStatus === "connected";
 
   onMount(async () => {
     // 1. Initialize Stores (Fetch + Subscribe)
@@ -24,7 +29,7 @@
     try {
       qrCode = await QRCode.toDataURL(joinUrl);
     } catch (err) {
-      console.error('QR Gen Error', err);
+      console.error("QR Gen Error", err);
     }
   });
 
@@ -32,10 +37,10 @@
 
   async function handleShuffle() {
     if (teamSize < 1) {
-      alert('Team size must be at least 1');
+      alert("Team size must be at least 1");
       return;
     }
-    
+
     if ($players.length === 0) return;
     isActionPending = true;
 
@@ -51,18 +56,16 @@
       const updates = shuffled.map((p, index) => ({
         id: p.id,
         team: Math.floor(index / teamSize) + 1,
-        name: p.name // Required for upsert sometimes, but let's try pushing just fields
+        name: p.name,
       }));
 
-      // Supabase doesn't support bulk update of different values easily in one query
-      // unless using upsert. Let's do a loop for now or upsert.
-      const { error } = await supabase.from('players').upsert(updates);
+      // Bulk update using upsert
+      const { error } = await supabase.from("players").upsert(updates);
 
       if (error) throw error;
-
     } catch (error) {
-      console.error('Shuffle failed:', error);
-      alert('Failed to update teams on server');
+      console.error("Shuffle failed:", error);
+      alert("Failed to update teams on server");
     } finally {
       isActionPending = false;
     }
@@ -70,7 +73,7 @@
 
   function showManualAssignment() {
     manualAssignments = {};
-    $players.forEach(player => {
+    $players.forEach((player) => {
       manualAssignments[player.id] = player.team;
     });
     showManualAssign = true;
@@ -85,40 +88,43 @@
     try {
       // Prepare updates
       const updates = Object.entries(manualAssignments).map(([id, team]) => {
-         // Find original player to keep name
-         const original = $players.find(p => p.id === id);
-         return {
-            id,
-            team: Number(team),
-            name: original?.name || 'Unknown' 
-         };
+        // Find original player to keep name
+        const original = $players.find((p) => p.id === id);
+        return {
+          id,
+          team: Number(team),
+          name: original?.name || "Unknown",
+        };
       });
 
-      const { error } = await supabase.from('players').upsert(updates);
+      const { error } = await supabase.from("players").upsert(updates);
       if (error) throw error;
-      
+
       hideManualAssignment();
     } catch (error) {
-       console.error('Manual assign failed:', error);
-       alert('Failed to save teams');
+      console.error("Manual assign failed:", error);
+      alert("Failed to save teams");
     } finally {
       isActionPending = false;
     }
   }
 
   async function handleReset() {
-    if (!confirm('Are you sure you want to reset all players and teams?')) {
+    if (!confirm("Are you sure you want to reset all players and teams?")) {
       return;
     }
     isActionPending = true;
-    
+
     try {
-       // Delete all rows
-       const { error } = await supabase.from('players').delete().gt('joined_at', '2000-01-01T00:00:00Z'); // Delete all players joined after year 2000 (effectively all)
-       if (error) throw error;
+      // Delete all rows
+      const { error } = await supabase
+        .from("players")
+        .delete()
+        .gt("joined_at", "2000-01-01T00:00:00Z"); // Delete all players joined after year 2000 (effectively all)
+      if (error) throw error;
     } catch (error) {
-      console.error('Reset failed:', error);
-      alert('Failed to reset game');
+      console.error("Reset failed:", error);
+      alert("Failed to reset game");
     } finally {
       isActionPending = false;
     }
@@ -128,41 +134,7 @@
   $: hasTeams = $teams.length > 0;
 </script>
 
-<!-- CONNECTION BANNER OVERRIDE -->
-<!-- We can reuse the component but inject our status if we wanted, 
-     but ConnectionBanner listens to the OLD socket store. 
-     We should probably refactor ConnectionBanner too, 
-     or just mock the socket store to map to our new store. 
-     For now, let's just use the banner if updated, or ignore it.
-     Actually, let's just make a simple banner here or assume ConnectionBanner is updated.
-     WAIT: I haven't updated ConnectionBanner. I should update it to listen to store.ts.
-     For this file, I'll assume ConnectionBanner will be fixed to use store.ts
--->
-<div class="banner-container">
-    {#if $connectionStatus === 'disconnected'}
-       <div class="banner disconnected">Connecting to database...</div>
-    {:else if $connectionStatus === 'error'}
-       <div class="banner error">Connection lost. Reconnecting...</div>
-    {/if}
-</div>
-
-<style>
-  .banner-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 9999;
-  }
-  .banner {
-    padding: 8px;
-    text-align: center;
-    color: white;
-    font-weight: bold;
-  }
-  .disconnected { background-color: #f59e0b; }
-  .error { background-color: #ef4444; }
-</style>
+<ConnectionBanner />
 
 <div class="container">
   <header>
@@ -176,7 +148,7 @@
       <h2>Player Join</h2>
       <div id="qrCodeContainer">
         {#if qrCode}
-          <img id="qrCode" src={qrCode} alt="QR Code">
+          <img id="qrCode" src={qrCode} alt="QR Code" />
         {/if}
       </div>
       <p class="join-url">Scan to join or visit: <span>{joinUrl}</span></p>
@@ -205,32 +177,38 @@
   <!-- Team Management -->
   <div class="team-management">
     <h2>Team Assignment</h2>
-    
+
     <div class="team-controls">
       <div class="control-group">
-        <button 
-          id="shuffleBtn" 
-          class="btn btn-primary" 
+        <button
+          id="shuffleBtn"
+          class="btn btn-primary"
           disabled={!hasPlayers || isActionPending}
           on:click={handleShuffle}
         >
           🎲 Random Shuffle
         </button>
-        <input type="number" id="teamSize" min="1" bind:value={teamSize} placeholder="Team size">
+        <input
+          type="number"
+          id="teamSize"
+          min="1"
+          bind:value={teamSize}
+          placeholder="Team size"
+        />
       </div>
-      
-      <button 
-        id="manualAssignBtn" 
-        class="btn btn-secondary" 
+
+      <button
+        id="manualAssignBtn"
+        class="btn btn-secondary"
         disabled={!hasPlayers || isActionPending}
         on:click={showManualAssignment}
       >
         ✋ Manual Assign
       </button>
-      
-      <button 
-        id="resetBtn" 
-        class="btn btn-danger" 
+
+      <button
+        id="resetBtn"
+        class="btn btn-danger"
         disabled={isActionPending}
         on:click={handleReset}
       >
@@ -248,7 +226,7 @@
               <span class="player-name">{player.name}</span>
               <div class="team-selector">
                 <label>Team:</label>
-                <select 
+                <select
                   bind:value={manualAssignments[player.id]}
                   class="team-input"
                 >
@@ -257,9 +235,9 @@
                     <option value={i + 1}>{i + 1}</option>
                   {/each}
                 </select>
-                <button 
-                  class="btn-small" 
-                  on:click={() => manualAssignments[player.id] = 0}
+                <button
+                  class="btn-small"
+                  on:click={() => (manualAssignments[player.id] = 0)}
                 >
                   Clear
                 </button>
@@ -267,10 +245,18 @@
             </div>
           {/each}
         </div>
-        <button class="btn btn-success" on:click={saveManualAssignments} disabled={isActionPending}>
+        <button
+          class="btn btn-success"
+          on:click={saveManualAssignments}
+          disabled={isActionPending}
+        >
           Save Team Assignments
         </button>
-        <button class="btn" on:click={hideManualAssignment} disabled={isActionPending}>Cancel</button>
+        <button
+          class="btn"
+          on:click={hideManualAssignment}
+          disabled={isActionPending}>Cancel</button
+        >
       </div>
     {/if}
   </div>
@@ -294,4 +280,3 @@
     </div>
   {/if}
 </div>
-

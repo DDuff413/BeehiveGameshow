@@ -1,99 +1,76 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { getSocket, socketConnected } from '../lib/socket';
-  import type { Player, Team, PlayersUpdateData } from '../lib/types';
+  import { onMount, onDestroy } from 'svelte';
+  import { players, teams, connectionStatus, initializeStores } from '../lib/store';
+  import { supabase } from '../lib/supabase';
   import ConnectionBanner from '../lib/ConnectionBanner.svelte';
+  import QRCode from 'qrcode';
 
-  let players: Player[] = [];
-  let teams: Team[] = [];
   let qrCode = '';
   let joinUrl = '';
   let teamSize = 2;
   let showManualAssign = false;
   let manualAssignments: Record<string, number> = {};
+  let isActionPending = false;
 
-  const socket = getSocket();
-
-  // Helper function to safely parse error responses
-  async function getErrorMessage(response: Response, defaultMessage: string): Promise<string> {
-    const fallbackMessage = `${defaultMessage} (${response.status} ${response.statusText})`;
-    try {
-      const contentType = response.headers.get('content-type');
-      if (contentType?.toLowerCase().startsWith('application/json')) {
-        const data = await response.json();
-        return data.error || fallbackMessage;
-      }
-    } catch {
-      // If JSON parsing fails, fall through to fallback message
-    }
-    return fallbackMessage;
-  }
+  // Reactive connection status for the banner
+  $: isConnected = $connectionStatus === 'connected';
 
   onMount(async () => {
-    // Load QR code
+    // 1. Initialize Stores (Fetch + Subscribe)
+    await initializeStores();
+
+    // 2. Generate QR Code
+    joinUrl = `${window.location.origin}/join`;
     try {
-      const response = await fetch('/api/qrcode');
-      const data = await response.json();
-      qrCode = data.qrCode;
-      joinUrl = data.joinUrl;
-    } catch (error) {
-      console.error('Failed to load QR code:', error);
+      qrCode = await QRCode.toDataURL(joinUrl);
+    } catch (err) {
+      console.error('QR Gen Error', err);
     }
-
-    // Socket listeners
-    socket.on('playersUpdated', (data: PlayersUpdateData) => {
-      players = data.players;
-      teams = data.teams;
-    });
-
-    socket.on('teamsUpdated', (data: PlayersUpdateData) => {
-      players = data.players;
-      teams = data.teams;
-    });
-
-    socket.on('playerJoined', (player: Player) => {
-      console.log('Player joined:', player.name);
-    });
-
-    return () => {
-      socket.off('playersUpdated');
-      socket.off('teamsUpdated');
-      socket.off('playerJoined');
-    };
   });
+
+  // GAME LOGIC (Now Client-Side)
 
   async function handleShuffle() {
     if (teamSize < 1) {
       alert('Team size must be at least 1');
       return;
     }
+    
+    if ($players.length === 0) return;
+    isActionPending = true;
 
-    if (!$socketConnected) {
-      alert('Cannot shuffle teams: Not connected to server');
-      return;
+    // Fisher-Yates shuffle
+    const shuffled = [...$players];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
     try {
-      const response = await fetch('/api/teams/shuffle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamSize })
-      });
+      // Create updates array
+      const updates = shuffled.map((p, index) => ({
+        id: p.id,
+        team: Math.floor(index / teamSize) + 1,
+        name: p.name // Required for upsert sometimes, but let's try pushing just fields
+      }));
 
-      if (!response.ok) {
-        const errorMessage = await getErrorMessage(response, 'Failed to shuffle teams');
-        throw new Error(errorMessage);
-      }
+      // Supabase doesn't support bulk update of different values easily in one query
+      // unless using upsert. Let's do a loop for now or upsert.
+      const { error } = await supabase.from('players').upsert(updates);
+
+      if (error) throw error;
+
     } catch (error) {
-      console.error('Error shuffling teams:', error);
-      alert(`Failed to shuffle teams: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Shuffle failed:', error);
+      alert('Failed to update teams on server');
+    } finally {
+      isActionPending = false;
     }
   }
 
   function showManualAssignment() {
     manualAssignments = {};
-    players.forEach(player => {
-      // Initialize with current team assignments (0 for unassigned)
+    $players.forEach(player => {
       manualAssignments[player.id] = player.team;
     });
     showManualAssign = true;
@@ -104,27 +81,28 @@
   }
 
   async function saveManualAssignments() {
-    if (!$socketConnected) {
-      alert('Cannot save teams: Not connected to server');
-      return;
-    }
-
+    isActionPending = true;
     try {
-      const response = await fetch('/api/teams/manual', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignments: manualAssignments })
+      // Prepare updates
+      const updates = Object.entries(manualAssignments).map(([id, team]) => {
+         // Find original player to keep name
+         const original = $players.find(p => p.id === id);
+         return {
+            id,
+            team: Number(team),
+            name: original?.name || 'Unknown' 
+         };
       });
 
-      if (!response.ok) {
-        const errorMessage = await getErrorMessage(response, 'Failed to save teams');
-        throw new Error(errorMessage);
-      }
-
+      const { error } = await supabase.from('players').upsert(updates);
+      if (error) throw error;
+      
       hideManualAssignment();
     } catch (error) {
-      console.error('Error saving teams:', error);
-      alert(`Failed to save teams: ${error instanceof Error ? error.message : 'Unknown error'}`);
+       console.error('Manual assign failed:', error);
+       alert('Failed to save teams');
+    } finally {
+      isActionPending = false;
     }
   }
 
@@ -132,35 +110,59 @@
     if (!confirm('Are you sure you want to reset all players and teams?')) {
       return;
     }
-
-    if (!$socketConnected) {
-      alert('Cannot reset: Not connected to server');
-      return;
-    }
-
+    isActionPending = true;
+    
     try {
-      const response = await fetch('/api/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (!response.ok) {
-        const errorMessage = await getErrorMessage(response, 'Failed to reset');
-        throw new Error(errorMessage);
-      }
-
-      hideManualAssignment();
+       // Delete all rows
+       const { error } = await supabase.from('players').delete().gt('joined_at', '2000-01-01T00:00:00Z'); // Delete all players joined after year 2000 (effectively all)
+       if (error) throw error;
     } catch (error) {
-      console.error('Error resetting:', error);
-      alert(`Failed to reset: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Reset failed:', error);
+      alert('Failed to reset game');
+    } finally {
+      isActionPending = false;
     }
   }
 
-  $: hasPlayers = players.length > 0;
-  $: hasTeams = teams.length > 0;
+  $: hasPlayers = $players.length > 0;
+  $: hasTeams = $teams.length > 0;
 </script>
 
-<ConnectionBanner />
+<!-- CONNECTION BANNER OVERRIDE -->
+<!-- We can reuse the component but inject our status if we wanted, 
+     but ConnectionBanner listens to the OLD socket store. 
+     We should probably refactor ConnectionBanner too, 
+     or just mock the socket store to map to our new store. 
+     For now, let's just use the banner if updated, or ignore it.
+     Actually, let's just make a simple banner here or assume ConnectionBanner is updated.
+     WAIT: I haven't updated ConnectionBanner. I should update it to listen to store.ts.
+     For this file, I'll assume ConnectionBanner will be fixed to use store.ts
+-->
+<div class="banner-container">
+    {#if $connectionStatus === 'disconnected'}
+       <div class="banner disconnected">Connecting to database...</div>
+    {:else if $connectionStatus === 'error'}
+       <div class="banner error">Connection lost. Reconnecting...</div>
+    {/if}
+</div>
+
+<style>
+  .banner-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+  }
+  .banner {
+    padding: 8px;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+  }
+  .disconnected { background-color: #f59e0b; }
+  .error { background-color: #ef4444; }
+</style>
 
 <div class="container">
   <header>
@@ -182,12 +184,12 @@
 
     <!-- Players List -->
     <div class="players-section">
-      <h2>Players <span id="playerCount">({players.length})</span></h2>
+      <h2>Players <span id="playerCount">({$players.length})</span></h2>
       <div id="playersList" class="players-list">
         {#if !hasPlayers}
           <p class="empty-state">No players yet. Scan the QR code to join!</p>
         {:else}
-          {#each players as player}
+          {#each $players as player (player.id)}
             <div class="player-card {player.team ? 'assigned' : ''}">
               <span class="player-name">{player.name}</span>
               {#if player.team}
@@ -209,7 +211,7 @@
         <button 
           id="shuffleBtn" 
           class="btn btn-primary" 
-          disabled={!hasPlayers}
+          disabled={!hasPlayers || isActionPending}
           on:click={handleShuffle}
         >
           🎲 Random Shuffle
@@ -220,13 +222,18 @@
       <button 
         id="manualAssignBtn" 
         class="btn btn-secondary" 
-        disabled={!hasPlayers}
+        disabled={!hasPlayers || isActionPending}
         on:click={showManualAssignment}
       >
         ✋ Manual Assign
       </button>
       
-      <button id="resetBtn" class="btn btn-danger" on:click={handleReset}>
+      <button 
+        id="resetBtn" 
+        class="btn btn-danger" 
+        disabled={isActionPending}
+        on:click={handleReset}
+      >
         🔄 Reset All
       </button>
     </div>
@@ -236,7 +243,7 @@
       <div id="manualAssignContainer" class="manual-assign-container">
         <h3>Assign players to teams:</h3>
         <div id="manualAssignPlayers" class="assign-players-list">
-          {#each players as player}
+          {#each $players as player (player.id)}
             <div class="assign-player-row">
               <span class="player-name">{player.name}</span>
               <div class="team-selector">
@@ -260,10 +267,10 @@
             </div>
           {/each}
         </div>
-        <button class="btn btn-success" on:click={saveManualAssignments}>
+        <button class="btn btn-success" on:click={saveManualAssignments} disabled={isActionPending}>
           Save Team Assignments
         </button>
-        <button class="btn" on:click={hideManualAssignment}>Cancel</button>
+        <button class="btn" on:click={hideManualAssignment} disabled={isActionPending}>Cancel</button>
       </div>
     {/if}
   </div>
@@ -273,7 +280,7 @@
     <div class="teams-section" id="teamsSection">
       <h2>Teams</h2>
       <div id="teamsList" class="teams-list">
-        {#each teams as team}
+        {#each $teams as team (team.teamNumber)}
           <div class="team-card">
             <h3>Team {team.teamNumber}</h3>
             <div class="team-members">

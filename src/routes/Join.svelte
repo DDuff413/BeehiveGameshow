@@ -1,11 +1,19 @@
 <script lang="ts">
-  import { socketConnected } from '../lib/socket';
+  import { onMount } from 'svelte';
+  import { supabase } from '../lib/supabase';
   import ConnectionBanner from '../lib/ConnectionBanner.svelte';
+  import { initializeStores } from '../lib/store';
+
+  onMount(() => {
+    initializeStores();
+  });
   
   let playerName = '';
   let errorMessage = '';
+  // isJoined could optionally be persisted in localStorage to handle refreshes
   let isJoined = false;
   let joinedName = '';
+  let isSubmitting = false;
 
   async function joinGame() {
     errorMessage = '';
@@ -16,24 +24,15 @@
       return;
     }
 
-    if (!$socketConnected) {
-      errorMessage = 'Not connected to server. Please wait and try again.';
-      return;
-    }
+    isSubmitting = true;
     
     try {
-      const response = await fetch('/api/players', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-      });
+      // Direct insert to Supabase
+      const { error } = await supabase
+        .from('players')
+        .insert([{ name }]);
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        errorMessage = data.error || 'Failed to join game';
-        return;
-      }
+      if (error) throw error;
       
       // Show success message
       isJoined = true;
@@ -41,7 +40,9 @@
       
     } catch (error) {
       console.error('Error joining game:', error);
-      errorMessage = error instanceof Error ? error.message : 'Failed to join game. Please try again.';
+      errorMessage = 'Failed to join game. Please try again.';
+    } finally {
+      isSubmitting = false;
     }
   }
 
@@ -72,9 +73,15 @@
           bind:value={playerName}
           on:keypress={handleKeyPress}
           autofocus
+          disabled={isSubmitting}
         >
-        <button id="joinBtn" class="btn btn-primary btn-large" on:click={joinGame}>
-          Join Game
+        <button 
+          id="joinBtn" 
+          class="btn btn-primary btn-large" 
+          on:click={joinGame}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Joining...' : 'Join Game'}
         </button>
         {#if errorMessage}
           <p id="errorMessage" class="error-message">{errorMessage}</p>

@@ -9,8 +9,3 @@ export interface Team {
   teamNumber: number;
   players: Player[];
 }
-
-export interface PlayersUpdateData {
-  players: Player[];
-  teams: Team[];
-}

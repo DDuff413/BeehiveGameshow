@@ -1,11 +1,6 @@
 <script lang="ts">
-  import { onMount, onDestroy } from "svelte";
-  import {
-    players,
-    teams,
-    connectionStatus,
-    initializeStores,
-  } from "../lib/store";
+  import { onMount } from "svelte";
+  import { players, teams, initializeStores } from "../lib/store";
   import { supabase } from "../lib/supabase";
   import ConnectionBanner from "../lib/ConnectionBanner.svelte";
   import QRCode from "qrcode";
@@ -16,9 +11,6 @@
   let showManualAssign = false;
   let manualAssignments: Record<string, number> = {};
   let isActionPending = false;
-
-  // Reactive connection status for the banner
-  $: isConnected = $connectionStatus === "connected";
 
   onMount(async () => {
     // 1. Initialize Stores (Fetch + Subscribe)

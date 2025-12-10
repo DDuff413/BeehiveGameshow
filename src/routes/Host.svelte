@@ -1,99 +1,71 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { getSocket, socketConnected } from '../lib/socket';
-  import type { Player, Team, PlayersUpdateData } from '../lib/types';
-  import ConnectionBanner from '../lib/ConnectionBanner.svelte';
+  import { onMount } from "svelte";
+  import { players, teams, initializeStores } from "../lib/store";
+  import { supabase } from "../lib/supabase";
+  import ConnectionBanner from "../lib/ConnectionBanner.svelte";
+  import QRCode from "qrcode";
 
-  let players: Player[] = [];
-  let teams: Team[] = [];
-  let qrCode = '';
-  let joinUrl = '';
+  let qrCode = "";
+  let joinUrl = "";
   let teamSize = 2;
   let showManualAssign = false;
   let manualAssignments: Record<string, number> = {};
-
-  const socket = getSocket();
-
-  // Helper function to safely parse error responses
-  async function getErrorMessage(response: Response, defaultMessage: string): Promise<string> {
-    const fallbackMessage = `${defaultMessage} (${response.status} ${response.statusText})`;
-    try {
-      const contentType = response.headers.get('content-type');
-      if (contentType?.toLowerCase().startsWith('application/json')) {
-        const data = await response.json();
-        return data.error || fallbackMessage;
-      }
-    } catch {
-      // If JSON parsing fails, fall through to fallback message
-    }
-    return fallbackMessage;
-  }
+  let isActionPending = false;
 
   onMount(async () => {
-    // Load QR code
+    // 1. Initialize Stores (Fetch + Subscribe)
+    await initializeStores();
+
+    // 2. Generate QR Code
+    joinUrl = `${window.location.origin}/join`;
     try {
-      const response = await fetch('/api/qrcode');
-      const data = await response.json();
-      qrCode = data.qrCode;
-      joinUrl = data.joinUrl;
-    } catch (error) {
-      console.error('Failed to load QR code:', error);
+      qrCode = await QRCode.toDataURL(joinUrl);
+    } catch (err) {
+      console.error("QR Gen Error", err);
     }
-
-    // Socket listeners
-    socket.on('playersUpdated', (data: PlayersUpdateData) => {
-      players = data.players;
-      teams = data.teams;
-    });
-
-    socket.on('teamsUpdated', (data: PlayersUpdateData) => {
-      players = data.players;
-      teams = data.teams;
-    });
-
-    socket.on('playerJoined', (player: Player) => {
-      console.log('Player joined:', player.name);
-    });
-
-    return () => {
-      socket.off('playersUpdated');
-      socket.off('teamsUpdated');
-      socket.off('playerJoined');
-    };
   });
+
+  // GAME LOGIC (Now Client-Side)
 
   async function handleShuffle() {
     if (teamSize < 1) {
-      alert('Team size must be at least 1');
+      alert("Team size must be at least 1");
       return;
     }
 
-    if (!$socketConnected) {
-      alert('Cannot shuffle teams: Not connected to server');
-      return;
+    if ($players.length === 0) return;
+    isActionPending = true;
+
+    // Fisher-Yates shuffle
+    const shuffled = [...$players];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
 
     try {
-      const response = await fetch('/api/teams/shuffle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamSize })
-      });
+      // Create updates array
+      const updates = shuffled.map((p, index) => ({
+        id: p.id,
+        team: Math.floor(index / teamSize) + 1,
+        name: p.name,
+      }));
 
-      if (!response.ok) {
-        const errorMessage = await getErrorMessage(response, 'Failed to shuffle teams');
-        throw new Error(errorMessage);
-      }
+      // Bulk update using upsert
+      const { error } = await supabase.from("players").upsert(updates);
+
+      if (error) throw error;
     } catch (error) {
-      console.error('Error shuffling teams:', error);
-      alert(`Failed to shuffle teams: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Shuffle failed:", error);
+      alert("Failed to update teams on server");
+    } finally {
+      isActionPending = false;
     }
   }
 
   function showManualAssignment() {
     manualAssignments = {};
-    players.forEach(player => {
-      // Initialize with current team assignments (0 for unassigned)
+    $players.forEach((player) => {
       manualAssignments[player.id] = player.team;
     });
     showManualAssign = true;
@@ -104,60 +76,51 @@
   }
 
   async function saveManualAssignments() {
-    if (!$socketConnected) {
-      alert('Cannot save teams: Not connected to server');
-      return;
-    }
-
+    isActionPending = true;
     try {
-      const response = await fetch('/api/teams/manual', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignments: manualAssignments })
+      // Prepare updates
+      const updates = Object.entries(manualAssignments).map(([id, team]) => {
+        // Find original player to keep name
+        const original = $players.find((p) => p.id === id);
+        return {
+          id,
+          team: Number(team),
+          name: original?.name || "Unknown",
+        };
       });
 
-      if (!response.ok) {
-        const errorMessage = await getErrorMessage(response, 'Failed to save teams');
-        throw new Error(errorMessage);
-      }
+      const { error } = await supabase.from("players").upsert(updates);
+      if (error) throw error;
 
       hideManualAssignment();
     } catch (error) {
-      console.error('Error saving teams:', error);
-      alert(`Failed to save teams: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Manual assign failed:", error);
+      alert("Failed to save teams");
+    } finally {
+      isActionPending = false;
     }
   }
 
   async function handleReset() {
-    if (!confirm('Are you sure you want to reset all players and teams?')) {
+    if (!confirm("Are you sure you want to reset all players and teams?")) {
       return;
     }
-
-    if (!$socketConnected) {
-      alert('Cannot reset: Not connected to server');
-      return;
-    }
+    isActionPending = true;
 
     try {
-      const response = await fetch('/api/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (!response.ok) {
-        const errorMessage = await getErrorMessage(response, 'Failed to reset');
-        throw new Error(errorMessage);
-      }
-
-      hideManualAssignment();
+      // Use RPC to clear the table cleanly
+      const { error } = await supabase.rpc("reset_game");
+      if (error) throw error;
     } catch (error) {
-      console.error('Error resetting:', error);
-      alert(`Failed to reset: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Reset failed:", error);
+      alert("Failed to reset game");
+    } finally {
+      isActionPending = false;
     }
   }
 
-  $: hasPlayers = players.length > 0;
-  $: hasTeams = teams.length > 0;
+  $: hasPlayers = $players.length > 0;
+  $: hasTeams = $teams.length > 0;
 </script>
 
 <ConnectionBanner />
@@ -174,7 +137,7 @@
       <h2>Player Join</h2>
       <div id="qrCodeContainer">
         {#if qrCode}
-          <img id="qrCode" src={qrCode} alt="QR Code">
+          <img id="qrCode" src={qrCode} alt="QR Code" />
         {/if}
       </div>
       <p class="join-url">Scan to join or visit: <span>{joinUrl}</span></p>
@@ -182,12 +145,12 @@
 
     <!-- Players List -->
     <div class="players-section">
-      <h2>Players <span id="playerCount">({players.length})</span></h2>
+      <h2>Players <span id="playerCount">({$players.length})</span></h2>
       <div id="playersList" class="players-list">
         {#if !hasPlayers}
           <p class="empty-state">No players yet. Scan the QR code to join!</p>
         {:else}
-          {#each players as player}
+          {#each $players as player (player.id)}
             <div class="player-card {player.team ? 'assigned' : ''}">
               <span class="player-name">{player.name}</span>
               {#if player.team}
@@ -203,30 +166,41 @@
   <!-- Team Management -->
   <div class="team-management">
     <h2>Team Assignment</h2>
-    
+
     <div class="team-controls">
       <div class="control-group">
-        <button 
-          id="shuffleBtn" 
-          class="btn btn-primary" 
-          disabled={!hasPlayers}
+        <button
+          id="shuffleBtn"
+          class="btn btn-primary"
+          disabled={!hasPlayers || isActionPending}
           on:click={handleShuffle}
         >
           🎲 Random Shuffle
         </button>
-        <input type="number" id="teamSize" min="1" bind:value={teamSize} placeholder="Team size">
+        <input
+          type="number"
+          id="teamSize"
+          min="1"
+          bind:value={teamSize}
+          placeholder="Team size"
+        />
       </div>
-      
-      <button 
-        id="manualAssignBtn" 
-        class="btn btn-secondary" 
-        disabled={!hasPlayers}
+
+      <button
+        id="manualAssignBtn"
+        class="btn btn-secondary"
+        disabled={!hasPlayers || isActionPending}
         on:click={showManualAssignment}
       >
         ✋ Manual Assign
       </button>
-      
-      <button id="resetBtn" class="btn btn-danger" on:click={handleReset}>
+
+      <button
+        id="resetBtn"
+        class="btn btn-danger"
+        disabled={isActionPending}
+        on:click={handleReset}
+      >
         🔄 Reset All
       </button>
     </div>
@@ -236,12 +210,12 @@
       <div id="manualAssignContainer" class="manual-assign-container">
         <h3>Assign players to teams:</h3>
         <div id="manualAssignPlayers" class="assign-players-list">
-          {#each players as player}
+          {#each $players as player (player.id)}
             <div class="assign-player-row">
               <span class="player-name">{player.name}</span>
               <div class="team-selector">
                 <label>Team:</label>
-                <select 
+                <select
                   bind:value={manualAssignments[player.id]}
                   class="team-input"
                 >
@@ -250,9 +224,9 @@
                     <option value={i + 1}>{i + 1}</option>
                   {/each}
                 </select>
-                <button 
-                  class="btn-small" 
-                  on:click={() => manualAssignments[player.id] = 0}
+                <button
+                  class="btn-small"
+                  on:click={() => (manualAssignments[player.id] = 0)}
                 >
                   Clear
                 </button>
@@ -260,10 +234,18 @@
             </div>
           {/each}
         </div>
-        <button class="btn btn-success" on:click={saveManualAssignments}>
+        <button
+          class="btn btn-success"
+          on:click={saveManualAssignments}
+          disabled={isActionPending}
+        >
           Save Team Assignments
         </button>
-        <button class="btn" on:click={hideManualAssignment}>Cancel</button>
+        <button
+          class="btn"
+          on:click={hideManualAssignment}
+          disabled={isActionPending}>Cancel</button
+        >
       </div>
     {/if}
   </div>
@@ -273,7 +255,7 @@
     <div class="teams-section" id="teamsSection">
       <h2>Teams</h2>
       <div id="teamsList" class="teams-list">
-        {#each teams as team}
+        {#each $teams as team (team.teamNumber)}
           <div class="team-card">
             <h3>Team {team.teamNumber}</h3>
             <div class="team-members">
@@ -287,4 +269,3 @@
     </div>
   {/if}
 </div>
-

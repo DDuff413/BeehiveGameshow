@@ -1,52 +1,54 @@
 <script lang="ts">
-  import { socketConnected } from '../lib/socket';
-  import ConnectionBanner from '../lib/ConnectionBanner.svelte';
-  
-  let playerName = '';
-  let errorMessage = '';
+  import { onMount } from "svelte";
+  import { supabase } from "../lib/supabase";
+  import ConnectionBanner from "../lib/ConnectionBanner.svelte";
+  import { initializeStores } from "../lib/store";
+
+  onMount(() => {
+    initializeStores();
+  });
+
+  let playerName = "";
+  let errorMessage = "";
+  // isJoined could optionally be persisted in localStorage to handle refreshes
   let isJoined = false;
-  let joinedName = '';
+  let joinedName = "";
+  let isSubmitting = false;
 
   async function joinGame() {
-    errorMessage = '';
+    errorMessage = "";
     const name = playerName.trim();
-    
+
     if (!name) {
-      errorMessage = 'Please enter your name';
+      errorMessage = "Please enter your name";
       return;
     }
 
-    if (!$socketConnected) {
-      errorMessage = 'Not connected to server. Please wait and try again.';
-      return;
-    }
-    
+    isSubmitting = true;
+
     try {
-      const response = await fetch('/api/players', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name })
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        errorMessage = data.error || 'Failed to join game';
-        return;
-      }
-      
+      // Direct insert to Supabase
+      const { error } = await supabase.from("players").insert([{ name }]);
+
+      if (error) throw error;
+
       // Show success message
       isJoined = true;
       joinedName = name;
-      
-    } catch (error) {
-      console.error('Error joining game:', error);
-      errorMessage = error instanceof Error ? error.message : 'Failed to join game. Please try again.';
+    } catch (error: any) {
+      console.error("Error joining game:", error);
+      if (error.code === "23505") {
+        errorMessage = "This name is already taken. Please choose another.";
+      } else {
+        errorMessage = `Failed to join: ${error.message || "Unknown error"}`;
+      }
+    } finally {
+      isSubmitting = false;
     }
   }
 
   function handleKeyPress(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       joinGame();
     }
   }
@@ -64,17 +66,23 @@
     {#if !isJoined}
       <div id="joinForm" class="join-form">
         <h2>Enter Your Name</h2>
-        <input 
-          type="text" 
-          id="playerName" 
-          placeholder="Your name" 
-          maxlength="50" 
+        <input
+          type="text"
+          id="playerName"
+          placeholder="Your name"
+          maxlength="50"
           bind:value={playerName}
           on:keypress={handleKeyPress}
           autofocus
+          disabled={isSubmitting}
+        />
+        <button
+          id="joinBtn"
+          class="btn btn-primary btn-large"
+          on:click={joinGame}
+          disabled={isSubmitting}
         >
-        <button id="joinBtn" class="btn btn-primary btn-large" on:click={joinGame}>
-          Join Game
+          {isSubmitting ? "Joining..." : "Join Game"}
         </button>
         {#if errorMessage}
           <p id="errorMessage" class="error-message">{errorMessage}</p>
@@ -90,4 +98,3 @@
     {/if}
   </div>
 </div>
-

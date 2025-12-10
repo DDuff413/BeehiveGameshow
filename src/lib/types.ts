@@ -2,16 +2,10 @@ export interface Player {
   id: string;
   name: string;
   team: number;
-  joinedAt: string;
+  joined_at: string;
 }
 
 export interface Team {
   teamNumber: number;
   players: Player[];
 }
-
-export interface PlayersUpdateData {
-  players: Player[];
-  teams: Team[];
-}
-

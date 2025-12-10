@@ -1,97 +1,95 @@
 # 🐝 BeehiveGameshow
 
-A real-time web application built with **Svelte** and **TypeScript** for hosting interactive gameshow-style events with QR code player joining and flexible team assignment.
+A real-time web application built with **Svelte** and **Supabase** for hosting interactive gameshow-style events. Players can join via QR code, and hosts can manage teams with shuffled or manual assignments.
 
 ## Features
 
 - **QR Code Player Join**: Display a QR code that players can scan to join the game from their mobile devices
-- **Real-time Updates**: Player list updates instantly via WebSocket (Socket.IO)
+- **Real-time Updates**: Player list updates instantly via **Supabase Realtime**
 - **Flexible Team Assignment**:
   - **Random Shuffle**: Automatically distribute players into teams of a specified size
   - **Manual Assignment**: Manually assign players to specific teams with an intuitive interface
+- **Persistent Data**: Players and teams are saved to a PostgreSQL database (Supabase)
 - **Responsive Design**: Mobile-friendly interface for both hosts and players
-- **Live Team Display**: Real-time visualization of formed teams
 
 ## Technology Stack
 
 ### Frontend
+
 - **Svelte 5**: Modern reactive framework with runes
 - **TypeScript**: Type-safe development
 - **Vite**: Fast development server and build tool
-- **Socket.IO Client**: Real-time bidirectional communication
 
-### Backend
-- **Node.js** with **TypeScript**
-- **Express**: Web server framework
-- **Socket.IO**: Real-time WebSocket server
-- **QRCode**: QR code generation
-- **UUID**: Unique ID generation
+### Backend / Data
+
+- **Supabase**:
+  - **PostgreSQL**: Persistent database
+  - **Realtime**: WebSocket subscriptions for live updates
+- **QRCode**: Client-side QR code generation
 
 ## Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/DDuff413/BeehiveGameshow.git
 cd BeehiveGameshow
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
+3. Configure Environment Variables:
+   Create a `.env` file in the root directory:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
 ## Development
 
-Run both frontend and backend in development mode with hot reload:
+Run the frontend in development mode with hot reload:
 
 ```bash
 npm run dev
 ```
 
-This will start:
-- Frontend (Svelte + Vite): `http://localhost:5173`
-- Backend API: `http://localhost:3000`
-
-The frontend proxies API requests to the backend automatically.
+- Open `http://localhost:5173` for the host dashboard.
+- Open `http://localhost:5173/join` to simulate a player.
 
 ## Production Build
 
-1. Build the frontend:
+1. Build the application:
+
 ```bash
 npm run build
 ```
 
-2. Start the production server:
+2. Preview the build locally (optional):
+
 ```bash
-npm start
+npm run preview
 ```
 
-The server will serve the built frontend and API on `http://localhost:3000`.
+### Deployment
 
-## Usage
+This application is a **Static Site** (SPA). You can deploy the `dist/` folder to any static hosting provider.
 
-### Development Mode
-
-1. Run `npm run dev`
-2. Open your browser to `http://localhost:5173` for the host dashboard
-3. Players can join at `http://localhost:5173/join`
-
-### Production Mode
-
-1. Run `npm run build` to build the frontend
-2. Run `npm start` to start the production server
-3. Open `http://localhost:3000` for the host dashboard
-4. Players join at `http://localhost:3000/join`
+- **Vercel** (Recommended): Connect your GitHub repo, add your `.env` variables in Vercel settings, and deploy.
+- **Netlify / Cloudflare Pages**: Same process.
 
 ## How to Use
 
-1. **Host** opens the dashboard and displays the QR code
-2. **Players** scan the QR code or visit the join URL to enter their names
-3. Players appear in real-time on the host dashboard
+1. **Host** opens the dashboard (`/`) and displays the QR code.
+2. **Players** scan the QR code or visit the join URL (`/join`) to enter their names.
+3. Players appear in real-time on the host dashboard.
 4. **Host** assigns teams:
-   - **Random Shuffle**: Enter team size and click "Random Shuffle"
-   - **Manual Assign**: Click "Manual Assign" to manually set team numbers
-5. Teams are displayed for everyone to see
+   - **Random Shuffle**: Enter team size and click "Random Shuffle".
+   - **Manual Assign**: Click "Manual Assign" to manually set team numbers.
+5. **Reset**: Use the "Reset" button to clear all players from the database.
 
 ## Project Structure
 
@@ -103,32 +101,14 @@ BeehiveGameshow/
 │   │   └── Join.svelte   # Player join page
 │   ├── lib/              # Shared utilities
 │   │   ├── types.ts      # TypeScript interfaces
-│   │   └── socket.ts     # Socket.IO client store
+│   │   ├── store.ts      # State management (Supabase Realtime)
+│   │   ├── supabase.ts   # Supabase client init
+│   │   └── ConnectionBanner.svelte # Status UI
 │   ├── App.svelte        # Main app with routing
 │   ├── app.css           # Global styles
 │   └── main.ts           # Entry point
-├── server.ts              # Backend server (TypeScript)
+├── supabase_schema.sql    # Database schema definition
 ├── vite.config.ts         # Vite configuration
-├── tsconfig.json          # Frontend TypeScript config
-├── tsconfig.server.json   # Backend TypeScript config
+├── tsconfig.json          # TypeScript config
 └── package.json           # Dependencies and scripts
 ```
-
-## API Endpoints
-
-- `GET /api/qrcode` - Generate QR code for join URL
-- `GET /api/players` - Get all players and teams
-- `POST /api/players` - Add a new player
-- `POST /api/teams/manual` - Manually assign teams
-- `POST /api/teams/shuffle` - Randomly shuffle teams
-- `POST /api/reset` - Reset all players and teams
-
-## Socket.IO Events
-
-- `playerJoined` - Emitted when a player joins
-- `playersUpdated` - Emitted when player list changes
-- `teamsUpdated` - Emitted when teams are assigned
-
-## License
-
-ISC

@@ -35,9 +35,13 @@
       // Show success message
       isJoined = true;
       joinedName = name;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error joining game:", error);
-      errorMessage = `Failed to join: ${error instanceof Error ? error.message : JSON.stringify(error)}`;
+      if (error.code === "23505") {
+        errorMessage = "This name is already taken. Please choose another.";
+      } else {
+        errorMessage = `Failed to join: ${error.message || "Unknown error"}`;
+      }
     } finally {
       isSubmitting = false;
     }

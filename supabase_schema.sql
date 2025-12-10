@@ -1,7 +1,7 @@
 -- Create the players table
 create table players (
   id uuid default gen_random_uuid() primary key,
-  name text not null,
+  name text not null unique,
   team int default 0,
   joined_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -43,3 +43,6 @@ security definer
 as $$
   delete from players where true;
 $$;
+
+-- Run this command in your SQL editor to enable the unique constraint:
+-- alter table players add constraint players_name_key unique (name);

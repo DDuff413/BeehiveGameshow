@@ -6,9 +6,11 @@ A real-time web application built with **Svelte** and **Supabase** for hosting i
 
 - **QR Code Player Join**: Display a QR code that players can scan to join the game from their mobile devices
 - **Real-time Updates**: Player list updates instantly via **Supabase Realtime**
-- **Flexible Team Assignment**:
-  - **Random Shuffle**: Automatically distribute players into teams of a specified size
-  - **Manual Assignment**: Manually assign players to specific teams with an intuitive interface
+- **Flexible Team Management**:
+  - **Create/Edit/Delete Teams**: Manage teams with custom names through an intuitive UI
+  - **Random Shuffle**: Automatically distribute players into existing teams
+  - **Manual Assignment**: Manually assign players to specific teams
+  - **Team Card Interface**: Edit team names, add/remove players with drag-free controls
 - **Persistent Data**: Players and teams are saved to a PostgreSQL database (Supabase)
 - **Responsive Design**: Mobile-friendly interface for both hosts and players
 
@@ -86,10 +88,14 @@ This application is a **Static Site** (SPA). You can deploy the `dist/` folder t
 1. **Host** opens the dashboard (`/`) and displays the QR code.
 2. **Players** scan the QR code or visit the join URL (`/join`) to enter their names.
 3. Players appear in real-time on the host dashboard.
-4. **Host** assigns teams:
-   - **Random Shuffle**: Enter team size and click "Random Shuffle".
-   - **Manual Assign**: Click "Manual Assign" to manually set team numbers.
-5. **Reset**: Use the "Reset" button to clear all players from the database.
+4. **Host** creates teams:
+   - Click "➕ Create Team" to add new teams (auto-named "Team 1", "Team 2", etc.)
+   - Edit team names and manage players using the team cards (✏️ icon)
+5. **Host** assigns players to teams:
+   - **Random Shuffle**: Enter team size and click "🎲 Random Shuffle" to distribute players
+   - **Manual Assign**: Click "✋ Manual Assign" to manually select teams for each player
+   - **Team Card**: Add/remove players directly in each team's edit mode
+6. **Reset**: Use the "🔄 Reset All" button to clear all players from the database.
 
 ## Project Structure
 
@@ -100,10 +106,15 @@ BeehiveGameshow/
 │   │   ├── Host.svelte   # Host dashboard
 │   │   └── Join.svelte   # Player join page
 │   ├── lib/              # Shared utilities
-│   │   ├── types.ts      # TypeScript interfaces
-│   │   ├── store.ts      # State management (Supabase Realtime)
-│   │   ├── supabase.ts   # Supabase client init
-│   │   └── ConnectionBanner.svelte # Status UI
+│   │   ├── db/           # Database interactions
+│   │   │   ├── supabase.ts       # Supabase client initialization
+│   │   │   ├── store.ts          # State management (Supabase Realtime)
+│   │   │   ├── teamOperations.ts # Team CRUD operations
+│   │   │   └── playerOperations.ts # Player CRUD operations
+│   │   ├── components/   # Svelte components
+│   │   │   ├── ConnectionBanner.svelte # Connection status UI
+│   │   │   └── TeamCard.svelte         # Team display/edit
+│   │   └── types.ts      # TypeScript interfaces
 │   ├── App.svelte        # Main app with routing
 │   ├── app.css           # Global styles
 │   └── main.ts           # Entry point

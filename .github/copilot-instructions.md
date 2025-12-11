@@ -1,5 +1,32 @@
 # Copilot Coding Agent Instructions - BeehiveGameshow
 
+## AI Agent Workflow
+
+**CRITICAL: Always provide a plan before taking action.**
+
+When asked to make changes, implement features, or fix issues:
+
+1. **Analyze First**: Read relevant files and understand the current implementation
+2. **Present Plan**: Clearly outline what you'll do, which files you'll modify, and why
+3. **Wait for Approval**: Get user confirmation before making changes
+4. **Execute**: Only proceed with changes after approval
+5. **Report Results**: Summarize what was changed and any potential impacts
+
+**Example Response Format:**
+
+```
+I'll need to make the following changes:
+1. Update `src/routes/Host.svelte` - Add new team assignment UI
+2. Modify `src/lib/db/store.ts` - Add new reactive store for team state
+3. Update `src/lib/types.ts` - Add TeamAssignment interface
+
+This will affect:
+- Team assignment workflow
+- Real-time updates to all connected clients
+
+Shall I proceed with these changes?
+```
+
 ## Repository Overview
 
 **BeehiveGameshow** is a real-time web application for hosting interactive gameshow-style events. It uses a serverless architecture with Supabase for data persistence and real-time updates.
@@ -60,9 +87,15 @@ src/
 ├── main.ts               # Entry point
 ├── App.svelte            # Router
 ├── lib/
-│   ├── store.ts          # State management (Supabase Realtime)
-│   ├── supabase.ts       # Supabase client initialization
-│   └── types.ts          # Shared types
+│   ├── db/              # Database interactions
+│   │   ├── supabase.ts       # Supabase client initialization
+│   │   ├── store.ts          # State management (Supabase Realtime)
+│   │   ├── teamOperations.ts # Team CRUD operations
+│   │   └── playerOperations.ts # Player CRUD operations
+│   ├── components/      # Svelte components
+│   │   ├── ConnectionBanner.svelte # Connection status UI
+│   │   └── TeamCard.svelte         # Team display/edit component
+│   └── types.ts         # Shared TypeScript interfaces
 └── routes/
     ├── Host.svelte       # Host dashboard
     └── Join.svelte       # Player join page
@@ -72,9 +105,11 @@ src/
 
 ## Key Behavioral Notes
 
-1.  **Supabase Realtime**: The app relies on `store.ts` to subscribe to database changes. Do not implement manual polling.
+1.  **Supabase Realtime**: The app relies on `src/lib/db/store.ts` to subscribe to database changes. Do not implement manual polling.
 2.  **Row Level Security (RLS)**: The database currently uses "Public" policies (`using (true)`) for simplicity.
 3.  **Client-Side Logic**: Team shuffling and assignments happen in the browser (`Host.svelte`) and are saved to the DB via `upsert`.
+4.  **Database Operations**: Team and player CRUD operations are centralized in `src/lib/db/teamOperations.ts` and `src/lib/db/playerOperations.ts`.
+5.  **Component Organization**: UI components live in `src/lib/components/`, database logic in `src/lib/db/`, shared types at `src/lib/types.ts`.
 
 ## Common Workflows
 

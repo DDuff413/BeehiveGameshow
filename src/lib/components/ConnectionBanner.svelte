@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { connectionStatus } from "./store";
+  import { connectionStatus } from "../db/store";
 </script>
 
 <!-- Connection Status Banner -->

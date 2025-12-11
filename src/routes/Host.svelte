@@ -1,15 +1,17 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { players, teams, initializeStores } from "../lib/store";
-  import { supabase } from "../lib/supabase";
-  import ConnectionBanner from "../lib/ConnectionBanner.svelte";
+  import { players, teams, teamsWithPlayers, initializeStores } from "../lib/db/store";
+  import { supabase } from "../lib/db/supabase";
+  import { createTeam } from "../lib/db/teamOperations";
+  import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
+  import TeamCard from "../lib/components/TeamCard.svelte";
   import QRCode from "qrcode";
 
   let qrCode = "";
   let joinUrl = "";
   let teamSize = 2;
   let showManualAssign = false;
-  let manualAssignments: Record<string, number> = {};
+  let manualAssignments: Record<string, string | null> = {};
   let isActionPending = false;
 
   onMount(async () => {
@@ -27,6 +29,21 @@
 
   // GAME LOGIC (Now Client-Side)
 
+  async function handleCreateTeam() {
+    isActionPending = true;
+    try {
+      const result = await createTeam();
+      if (!result.success) {
+        alert(`Failed to create team: ${result.error}`);
+      }
+    } catch (error: any) {
+      console.error("Create team failed:", error);
+      alert("Failed to create team");
+    } finally {
+      isActionPending = false;
+    }
+  }
+
   async function handleShuffle() {
     if (teamSize < 1) {
       alert("Team size must be at least 1");
@@ -34,6 +51,13 @@
     }
 
     if ($players.length === 0) return;
+    
+    // Check if teams exist
+    if ($teams.length === 0) {
+      alert("Please create at least one team before shuffling");
+      return;
+    }
+
     isActionPending = true;
 
     // Fisher-Yates shuffle
@@ -44,12 +68,16 @@
     }
 
     try {
-      // Create updates array
-      const updates = shuffled.map((p, index) => ({
-        id: p.id,
-        team: Math.floor(index / teamSize) + 1,
-        name: p.name,
-      }));
+      // Assign players to teams in round-robin fashion
+      const updates = shuffled.map((p, index) => {
+        const teamIndex = Math.floor(index / teamSize) % $teams.length;
+        const team = $teams[teamIndex];
+        return {
+          id: p.id,
+          team_id: team.id,
+          name: p.name,
+        };
+      });
 
       // Bulk update using upsert
       const { error } = await supabase.from("players").upsert(updates);
@@ -66,7 +94,7 @@
   function showManualAssignment() {
     manualAssignments = {};
     $players.forEach((player) => {
-      manualAssignments[player.id] = player.team;
+      manualAssignments[player.id] = player.team_id;
     });
     showManualAssign = true;
   }
@@ -79,12 +107,12 @@
     isActionPending = true;
     try {
       // Prepare updates
-      const updates = Object.entries(manualAssignments).map(([id, team]) => {
+      const updates = Object.entries(manualAssignments).map(([id, team_id]) => {
         // Find original player to keep name
         const original = $players.find((p) => p.id === id);
         return {
           id,
-          team: Number(team),
+          team_id: team_id || null,
           name: original?.name || "Unknown",
         };
       });
@@ -108,7 +136,7 @@
     isActionPending = true;
 
     try {
-      // Use RPC to clear the table cleanly
+      // Use RPC to clear both tables cleanly
       const { error } = await supabase.rpc("reset_game");
       if (error) throw error;
     } catch (error) {
@@ -120,7 +148,7 @@
   }
 
   $: hasPlayers = $players.length > 0;
-  $: hasTeams = $teams.length > 0;
+  $: hasTeams = $teamsWithPlayers.length > 0;
 </script>
 
 <ConnectionBanner />
@@ -151,10 +179,11 @@
           <p class="empty-state">No players yet. Scan the QR code to join!</p>
         {:else}
           {#each $players as player (player.id)}
-            <div class="player-card {player.team ? 'assigned' : ''}">
+            <div class="player-card {player.team_id ? 'assigned' : ''}">
               <span class="player-name">{player.name}</span>
-              {#if player.team}
-                <span class="team-badge">Team {player.team}</span>
+              {#if player.team_id}
+                {@const playerTeam = $teams.find(t => t.id === player.team_id)}
+                <span class="team-badge">{playerTeam?.name || 'Team'}</span>
               {/if}
             </div>
           {/each}
@@ -165,14 +194,23 @@
 
   <!-- Team Management -->
   <div class="team-management">
-    <h2>Team Assignment</h2>
+    <h2>Team Management</h2>
 
     <div class="team-controls">
+      <button
+        id="createTeamBtn"
+        class="btn btn-success"
+        disabled={isActionPending}
+        on:click={handleCreateTeam}
+      >
+        ➕ Create Team
+      </button>
+
       <div class="control-group">
         <button
           id="shuffleBtn"
           class="btn btn-primary"
-          disabled={!hasPlayers || isActionPending}
+          disabled={!hasPlayers || isActionPending || !hasTeams}
           on:click={handleShuffle}
         >
           🎲 Random Shuffle
@@ -189,7 +227,7 @@
       <button
         id="manualAssignBtn"
         class="btn btn-secondary"
-        disabled={!hasPlayers || isActionPending}
+        disabled={!hasPlayers || isActionPending || !hasTeams}
         on:click={showManualAssignment}
       >
         ✋ Manual Assign
@@ -219,14 +257,14 @@
                   bind:value={manualAssignments[player.id]}
                   class="team-input"
                 >
-                  <option value={0}>Unassigned</option>
-                  {#each Array(10) as _, i}
-                    <option value={i + 1}>{i + 1}</option>
+                  <option value={null}>Unassigned</option>
+                  {#each $teams as team (team.id)}
+                    <option value={team.id}>{team.name}</option>
                   {/each}
                 </select>
                 <button
                   class="btn-small"
-                  on:click={() => (manualAssignments[player.id] = 0)}
+                  on:click={() => (manualAssignments[player.id] = null)}
                 >
                   Clear
                 </button>
@@ -255,15 +293,8 @@
     <div class="teams-section" id="teamsSection">
       <h2>Teams</h2>
       <div id="teamsList" class="teams-list">
-        {#each $teams as team (team.teamNumber)}
-          <div class="team-card">
-            <h3>Team {team.teamNumber}</h3>
-            <div class="team-members">
-              {#each team.players as player}
-                <div class="team-member">{player.name}</div>
-              {/each}
-            </div>
-          </div>
+        {#each $teamsWithPlayers as team (team.id)}
+          <TeamCard {team} />
         {/each}
       </div>
     </div>

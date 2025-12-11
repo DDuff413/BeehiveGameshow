@@ -10,6 +10,7 @@
   let qrCode = "";
   let joinUrl = "";
   let teamSize = 2;
+  let newTeamName = "";
   let showManualAssign = false;
   let manualAssignments: Record<string, string | null> = {};
   let isActionPending = false;
@@ -32,9 +33,12 @@
   async function handleCreateTeam() {
     isActionPending = true;
     try {
-      const result = await createTeam();
+      const teamName = newTeamName.trim() || undefined;
+      const result = await createTeam(teamName);
       if (!result.success) {
         alert(`Failed to create team: ${result.error}`);
+      } else {
+        newTeamName = ""; // Clear input on success
       }
     } catch (error: any) {
       console.error("Create team failed:", error);
@@ -51,12 +55,6 @@
     }
 
     if ($players.length === 0) return;
-    
-    // Check if teams exist
-    if ($teams.length === 0) {
-      alert("Please create at least one team before shuffling");
-      return;
-    }
 
     isActionPending = true;
 
@@ -68,6 +66,25 @@
     }
 
     try {
+      // Calculate how many teams we need based on player count and team size
+      const teamsNeeded = Math.ceil(shuffled.length / teamSize);
+      const currentTeamCount = $teams.length;
+
+      // Create additional teams if needed
+      if (teamsNeeded > currentTeamCount) {
+        const teamsToCreate = teamsNeeded - currentTeamCount;
+        for (let i = 0; i < teamsToCreate; i++) {
+          const teamNumber = currentTeamCount + i + 1;
+          const teamName = `Team ${teamNumber}`;
+          const result = await createTeam(teamName);
+          if (!result.success) {
+            throw new Error(`Failed to create team: ${result.error}`);
+          }
+        }
+        // Wait a moment for realtime to update the teams store
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
       // Assign players to teams in round-robin fashion
       const updates = shuffled.map((p, index) => {
         const teamIndex = Math.floor(index / teamSize) % $teams.length;
@@ -197,20 +214,31 @@
     <h2>Team Management</h2>
 
     <div class="team-controls">
-      <button
-        id="createTeamBtn"
-        class="btn btn-success"
-        disabled={isActionPending}
-        on:click={handleCreateTeam}
-      >
-        ➕ Create Team
-      </button>
+      <!-- Row 1: Create Team -->
+      <div class="control-group">
+        <input
+          type="text"
+          id="newTeamName"
+          bind:value={newTeamName}
+          placeholder="Team name (optional)"
+          disabled={isActionPending}
+        />
+        <button
+          id="createTeamBtn"
+          class="btn btn-success"
+          disabled={isActionPending}
+          on:click={handleCreateTeam}
+        >
+          ➕ Create Team
+        </button>
+      </div>
 
+      <!-- Row 2: Shuffle and Manual Assign -->
       <div class="control-group">
         <button
           id="shuffleBtn"
           class="btn btn-primary"
-          disabled={!hasPlayers || isActionPending || !hasTeams}
+          disabled={!hasPlayers || isActionPending}
           on:click={handleShuffle}
         >
           🎲 Random Shuffle
@@ -222,25 +250,27 @@
           bind:value={teamSize}
           placeholder="Team size"
         />
+        <button
+          id="manualAssignBtn"
+          class="btn btn-secondary"
+          disabled={!hasPlayers || isActionPending || !hasTeams}
+          on:click={showManualAssignment}
+        >
+          ✋ Manual Assign
+        </button>
       </div>
 
-      <button
-        id="manualAssignBtn"
-        class="btn btn-secondary"
-        disabled={!hasPlayers || isActionPending || !hasTeams}
-        on:click={showManualAssignment}
-      >
-        ✋ Manual Assign
-      </button>
-
-      <button
-        id="resetBtn"
-        class="btn btn-danger"
-        disabled={isActionPending}
-        on:click={handleReset}
-      >
-        🔄 Reset All
-      </button>
+      <!-- Row 3: Reset -->
+      <div class="control-group">
+        <button
+          id="resetBtn"
+          class="btn btn-danger"
+          disabled={isActionPending}
+          on:click={handleReset}
+        >
+          🔄 Reset All
+        </button>
+      </div>
     </div>
 
     <!-- Manual Assignment Interface -->

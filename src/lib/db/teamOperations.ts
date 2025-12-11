@@ -11,17 +11,17 @@ export interface TeamUpdateData {
 
 /**
  * Create a new team with auto-generated name "Team X"
+ * @param teamName - Optional custom team name. If not provided, generates "Team X" based on current count
  */
-export async function createTeam(): Promise<{
+export async function createTeam(teamName?: string): Promise<{
   success: boolean;
   error?: string;
 }> {
   try {
     const currentTeams = get(teams);
-    const teamNumber = currentTeams.length + 1;
-    const teamName = `Team ${teamNumber}`;
+    const name = teamName ?? `Team ${currentTeams.length + 1}`;
 
-    const { error } = await supabase.from("teams").insert([{ name: teamName }]);
+    const { error } = await supabase.from("teams").insert([{ name }]);
 
     if (error) throw error;
 

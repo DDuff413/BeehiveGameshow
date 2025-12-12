@@ -63,9 +63,10 @@
         updates.playersToRemove = Array.from(playersToRemove);
       }
 
-      // Players to add (filter empty selections and get unique values)
+      // Players to add (filter empty selections, validate existence, and get unique values)
       const playersToAdd = playerSelectionsToAdd
         .filter((id) => id) // Remove empty strings
+        .filter((id) => $players.some((p) => p.id === id)) // Validate player still exists
         .filter((id, index, arr) => arr.indexOf(id) === index); // Remove duplicates (keep first)
 
       if (playersToAdd.length > 0) {

@@ -1,11 +1,13 @@
 export interface Player {
   id: string;
   name: string;
-  team: number;
+  team_id: string | null;
   joined_at: string;
 }
 
 export interface Team {
-  teamNumber: number;
-  players: Player[];
+  id: string;
+  name: string;
+  created_at: string;
+  players?: Player[]; // Populated on client side
 }

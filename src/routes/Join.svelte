@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { supabase } from "../lib/supabase";
-  import ConnectionBanner from "../lib/ConnectionBanner.svelte";
-  import { initializeStores } from "../lib/store";
+  import { supabase } from "../lib/db/supabase";
+  import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
+  import { initializeStores } from "../lib/db/store";
 
   onMount(() => {
     initializeStores();

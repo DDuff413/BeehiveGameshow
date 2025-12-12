@@ -1,15 +1,23 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { players, teams, initializeStores } from "../lib/store";
-  import { supabase } from "../lib/supabase";
-  import ConnectionBanner from "../lib/ConnectionBanner.svelte";
+  import {
+    players,
+    teams,
+    teamsWithPlayers,
+    initializeStores,
+  } from "../lib/db/store";
+  import { supabase } from "../lib/db/supabase";
+  import { createTeam } from "../lib/db/teamOperations";
+  import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
+  import TeamCard from "../lib/components/TeamCard.svelte";
   import QRCode from "qrcode";
 
   let qrCode = "";
   let joinUrl = "";
   let teamSize = 2;
+  let newTeamName = "";
   let showManualAssign = false;
-  let manualAssignments: Record<string, number> = {};
+  let manualAssignments: Record<string, string | null> = {};
   let isActionPending = false;
 
   onMount(async () => {
@@ -27,6 +35,24 @@
 
   // GAME LOGIC (Now Client-Side)
 
+  async function handleCreateTeam() {
+    isActionPending = true;
+    try {
+      const teamName = newTeamName.trim() || undefined;
+      const result = await createTeam(teamName);
+      if (!result.success) {
+        alert(`Failed to create team: ${result.error}`);
+      } else {
+        newTeamName = ""; // Clear input on success
+      }
+    } catch (error: any) {
+      console.error("Create team failed:", error);
+      alert("Failed to create team");
+    } finally {
+      isActionPending = false;
+    }
+  }
+
   async function handleShuffle() {
     if (teamSize < 1) {
       alert("Team size must be at least 1");
@@ -34,6 +60,7 @@
     }
 
     if ($players.length === 0) return;
+
     isActionPending = true;
 
     // Fisher-Yates shuffle
@@ -44,12 +71,49 @@
     }
 
     try {
-      // Create updates array
-      const updates = shuffled.map((p, index) => ({
-        id: p.id,
-        team: Math.floor(index / teamSize) + 1,
-        name: p.name,
-      }));
+      // Calculate how many teams we need based on player count and team size
+      const teamsNeeded = Math.ceil(shuffled.length / teamSize);
+      const currentTeamCount = $teams.length;
+
+      // Create additional teams if needed
+      if (teamsNeeded > currentTeamCount) {
+        const teamsToCreate = teamsNeeded - currentTeamCount;
+        for (let i = 0; i < teamsToCreate; i++) {
+          // Let createTeam generate random names automatically
+          const result = await createTeam();
+          if (!result.success) {
+            throw new Error(`Failed to create team: ${result.error}`);
+          }
+        }
+        // Wait for realtime to update the teams store
+        const waitForTeams = new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            unsubscribe();
+            reject(new Error("Timeout waiting for teams to be created"));
+          }, 5000);
+
+          const unsubscribe = teams.subscribe((currentTeams) => {
+            if (currentTeams.length >= teamsNeeded) {
+              clearTimeout(timeout);
+              unsubscribe();
+              resolve();
+            }
+          });
+        });
+
+        await waitForTeams;
+      }
+
+      // Assign players to teams in round-robin fashion
+      const updates = shuffled.map((p, index) => {
+        const teamIndex = Math.floor(index / teamSize) % $teams.length;
+        const team = $teams[teamIndex];
+        return {
+          id: p.id,
+          team_id: team.id,
+          name: p.name,
+        };
+      });
 
       // Bulk update using upsert
       const { error } = await supabase.from("players").upsert(updates);
@@ -66,7 +130,7 @@
   function showManualAssignment() {
     manualAssignments = {};
     $players.forEach((player) => {
-      manualAssignments[player.id] = player.team;
+      manualAssignments[player.id] = player.team_id;
     });
     showManualAssign = true;
   }
@@ -79,12 +143,12 @@
     isActionPending = true;
     try {
       // Prepare updates
-      const updates = Object.entries(manualAssignments).map(([id, team]) => {
+      const updates = Object.entries(manualAssignments).map(([id, team_id]) => {
         // Find original player to keep name
         const original = $players.find((p) => p.id === id);
         return {
           id,
-          team: Number(team),
+          team_id: team_id || null,
           name: original?.name || "Unknown",
         };
       });
@@ -108,7 +172,7 @@
     isActionPending = true;
 
     try {
-      // Use RPC to clear the table cleanly
+      // Use RPC to clear both tables cleanly
       const { error } = await supabase.rpc("reset_game");
       if (error) throw error;
     } catch (error) {
@@ -120,7 +184,7 @@
   }
 
   $: hasPlayers = $players.length > 0;
-  $: hasTeams = $teams.length > 0;
+  $: hasTeams = $teamsWithPlayers.length > 0;
 </script>
 
 <ConnectionBanner />
@@ -151,10 +215,13 @@
           <p class="empty-state">No players yet. Scan the QR code to join!</p>
         {:else}
           {#each $players as player (player.id)}
-            <div class="player-card {player.team ? 'assigned' : ''}">
+            <div class="player-card {player.team_id ? 'assigned' : ''}">
               <span class="player-name">{player.name}</span>
-              {#if player.team}
-                <span class="team-badge">Team {player.team}</span>
+              {#if player.team_id}
+                {@const playerTeam = $teams.find(
+                  (t) => t.id === player.team_id
+                )}
+                <span class="team-badge">{playerTeam?.name || "Team"}</span>
               {/if}
             </div>
           {/each}
@@ -165,9 +232,29 @@
 
   <!-- Team Management -->
   <div class="team-management">
-    <h2>Team Assignment</h2>
+    <h2>Team Management</h2>
 
     <div class="team-controls">
+      <!-- Row 1: Create Team -->
+      <div class="control-group">
+        <input
+          type="text"
+          id="newTeamName"
+          bind:value={newTeamName}
+          placeholder="Team name (optional)"
+          disabled={isActionPending}
+        />
+        <button
+          id="createTeamBtn"
+          class="btn btn-success"
+          disabled={isActionPending}
+          on:click={handleCreateTeam}
+        >
+          ➕ Create Team
+        </button>
+      </div>
+
+      <!-- Row 2: Shuffle and Manual Assign -->
       <div class="control-group">
         <button
           id="shuffleBtn"
@@ -184,25 +271,27 @@
           bind:value={teamSize}
           placeholder="Team size"
         />
+        <button
+          id="manualAssignBtn"
+          class="btn btn-secondary"
+          disabled={!hasPlayers || isActionPending || !hasTeams}
+          on:click={showManualAssignment}
+        >
+          ✋ Manual Assign
+        </button>
       </div>
 
-      <button
-        id="manualAssignBtn"
-        class="btn btn-secondary"
-        disabled={!hasPlayers || isActionPending}
-        on:click={showManualAssignment}
-      >
-        ✋ Manual Assign
-      </button>
-
-      <button
-        id="resetBtn"
-        class="btn btn-danger"
-        disabled={isActionPending}
-        on:click={handleReset}
-      >
-        🔄 Reset All
-      </button>
+      <!-- Row 3: Reset -->
+      <div class="control-group">
+        <button
+          id="resetBtn"
+          class="btn btn-danger"
+          disabled={isActionPending}
+          on:click={handleReset}
+        >
+          🔄 Reset All
+        </button>
+      </div>
     </div>
 
     <!-- Manual Assignment Interface -->
@@ -219,14 +308,14 @@
                   bind:value={manualAssignments[player.id]}
                   class="team-input"
                 >
-                  <option value={0}>Unassigned</option>
-                  {#each Array(10) as _, i}
-                    <option value={i + 1}>{i + 1}</option>
+                  <option value={null}>Unassigned</option>
+                  {#each $teams as team (team.id)}
+                    <option value={team.id}>{team.name}</option>
                   {/each}
                 </select>
                 <button
                   class="btn-small"
-                  on:click={() => (manualAssignments[player.id] = 0)}
+                  on:click={() => (manualAssignments[player.id] = null)}
                 >
                   Clear
                 </button>
@@ -255,15 +344,8 @@
     <div class="teams-section" id="teamsSection">
       <h2>Teams</h2>
       <div id="teamsList" class="teams-list">
-        {#each $teams as team (team.teamNumber)}
-          <div class="team-card">
-            <h3>Team {team.teamNumber}</h3>
-            <div class="team-members">
-              {#each team.players as player}
-                <div class="team-member">{player.name}</div>
-              {/each}
-            </div>
-          </div>
+        {#each $teamsWithPlayers as team (team.id)}
+          <TeamCard {team} />
         {/each}
       </div>
     </div>

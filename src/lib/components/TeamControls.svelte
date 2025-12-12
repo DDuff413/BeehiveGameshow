@@ -221,7 +221,8 @@
     isActionPending = true;
 
     try {
-      const { error } = await supabase.from("teams").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      // Delete all teams (using 'not null' filter is more explicit than UUID workaround)
+      const { error } = await supabase.from("teams").delete().not("id", "is", null);
       if (error) throw error;
     } catch (error: any) {
       console.error("Reset teams failed:", error);
@@ -239,7 +240,8 @@
     isActionPending = true;
 
     try {
-      const { error } = await supabase.from("players").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      // Delete all players (using 'not null' filter is more explicit than UUID workaround)
+      const { error } = await supabase.from("players").delete().not("id", "is", null);
       if (error) throw error;
     } catch (error: any) {
       console.error("Reset players failed:", error);

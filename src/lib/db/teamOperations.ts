@@ -19,7 +19,9 @@ export interface TeamUpdateData {
 }
 
 /**
- * Generate a random team name like "Quick Oxen" or "Brave Tigers"
+ * Generate a random team name with adjective + plural animal
+ * Examples: "Quick Oxen", "Brave Tigers", "Swift Dolphins"
+ * Uses unique-names-generator for random words and pluralize for proper pluralization
  */
 function generateRandomTeamName(): string {
   const adjective = uniqueNamesGenerator({
@@ -41,7 +43,8 @@ function generateRandomTeamName(): string {
 
 /**
  * Create a new team with auto-generated or custom name
- * @param teamName - Optional custom team name. If not provided, generates a fun random name like "Quick Apples"
+ * @param teamName - Optional custom team name. If not provided, generates a random name using adjective + plural animal (e.g., "Quick Oxen", "Brave Tigers")
+ * @returns Promise with success status and optional error message
  */
 export async function createTeam(teamName?: string): Promise<{
   success: boolean;

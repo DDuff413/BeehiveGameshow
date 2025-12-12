@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "generate-types": "source .env && export SUPABASE_ACCESS_TOKEN && npx supabase gen types typescript --project-id anwsydogzsmyequwopjw --schema public > src/lib/db/database.types.ts"
+    "generate-types": "source .env && export SUPABASE_ACCESS_TOKEN && export SUPABASE_PROJECT_ID && npx supabase gen types typescript --project-id $SUPABASE_PROJECT_ID --schema public > src/lib/db/database.types.ts"
   },
   "keywords": [],
   "author": "",

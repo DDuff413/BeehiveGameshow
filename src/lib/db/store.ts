@@ -1,3 +1,8 @@
+import {
+  INITIAL_RETRY_DELAY,
+  MAX_RETRY_ATTEMPTS,
+  MAX_RETRY_DELAY,
+} from "../constants";
 import type { Player, Team } from "../types";
 import { derived, writable } from "svelte/store";
 
@@ -27,8 +32,6 @@ export const teamsWithPlayers = derived(
 let playersSubscription: RealtimeChannel | null = null;
 let teamsSubscription: RealtimeChannel | null = null;
 let retryCount = 0;
-const MAX_RETRIES = 5;
-const INITIAL_RETRY_DELAY = 2000; // 2 seconds
 
 // Manual reconnection function
 export function reconnect() {
@@ -51,7 +54,10 @@ function cleanupSubscriptions() {
 
 function getRetryDelay(): number {
   // Exponential backoff: 2s, 4s, 8s, 16s, 32s
-  return Math.min(INITIAL_RETRY_DELAY * Math.pow(2, retryCount), 32000);
+  return Math.min(
+    INITIAL_RETRY_DELAY * Math.pow(2, retryCount),
+    MAX_RETRY_DELAY
+  );
 }
 
 // Initial Fetch & Realtime Subscription
@@ -73,14 +79,14 @@ export async function initializeStores() {
     errorMessage.set(`Failed to fetch players: ${playersError.message}`);
 
     // Attempt retry if under limit
-    if (retryCount < MAX_RETRIES) {
+    if (retryCount < MAX_RETRY_ATTEMPTS) {
       retryCount++;
       const delay = getRetryDelay();
       connectionStatus.set("reconnecting");
       console.log(
         `Fetch failed. Retrying in ${
           delay / 1000
-        }s... (${retryCount}/${MAX_RETRIES})`
+        }s... (${retryCount}/${MAX_RETRY_ATTEMPTS})`
       );
       setTimeout(initializeStores, delay);
     }
@@ -98,14 +104,14 @@ export async function initializeStores() {
     connectionStatus.set("error");
     errorMessage.set(`Failed to fetch teams: ${teamsError.message}`);
 
-    if (retryCount < MAX_RETRIES) {
+    if (retryCount < MAX_RETRY_ATTEMPTS) {
       retryCount++;
       const delay = getRetryDelay();
       connectionStatus.set("reconnecting");
       console.log(
         `Fetch failed. Retrying in ${
           delay / 1000
-        }s... (${retryCount}/${MAX_RETRIES})`
+        }s... (${retryCount}/${MAX_RETRY_ATTEMPTS})`
       );
       setTimeout(initializeStores, delay);
     }
@@ -204,14 +210,14 @@ function handleSubscriptionStatus(status: string, channelName: string) {
     cleanupSubscriptions();
 
     // Attempt reconnection with exponential backoff if under limit
-    if (retryCount < MAX_RETRIES) {
+    if (retryCount < MAX_RETRY_ATTEMPTS) {
       retryCount++;
       const delay = getRetryDelay();
       connectionStatus.set("reconnecting");
       console.log(
         `Attempting reconnection in ${
           delay / 1000
-        } seconds... (Attempt ${retryCount}/${MAX_RETRIES})`
+        } seconds... (Attempt ${retryCount}/${MAX_RETRY_ATTEMPTS})`
       );
       setTimeout(() => {
         initializeStores();

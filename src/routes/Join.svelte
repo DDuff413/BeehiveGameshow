@@ -3,6 +3,7 @@
   import { supabase } from "../lib/db/supabase";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
   import { initializeStores, players } from "../lib/db/store";
+  import { MAX_NAME_LENGTH } from "../lib/constants";
 
   onMount(() => {
     initializeStores();
@@ -21,7 +22,7 @@
     const trimmed = name.trim();
     
     if (!trimmed) return "Name is required";
-    if (trimmed.length > 50) return "Name must be 50 characters or less";
+    if (trimmed.length > MAX_NAME_LENGTH) return `Name must be ${MAX_NAME_LENGTH} characters or less`;
     
     // Check for duplicates (case-insensitive)
     const duplicate = $players.find(
@@ -99,7 +100,7 @@
             type="text"
             id="playerName"
             placeholder="Your name"
-            maxlength="50"
+            maxlength={MAX_NAME_LENGTH}
             bind:value={playerName}
             onkeypress={handleKeyPress}
             disabled={isSubmitting}

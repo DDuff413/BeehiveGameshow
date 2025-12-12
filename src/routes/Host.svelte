@@ -19,6 +19,26 @@
   let showManualAssign = false;
   let manualAssignments: Record<string, string | null> = {};
   let isActionPending = false;
+  let operationError = "";
+  let teamNameError = "";
+
+  // Validation function
+  function validateTeamName(name: string): string {
+    if (!name.trim()) return ""; // Empty is allowed (will generate random)
+    if (name.length > 50) return "Team name must be 50 characters or less";
+    
+    const existingTeam = $teams.find(
+      (t) => t.name.toLowerCase() === name.trim().toLowerCase()
+    );
+    if (existingTeam) return "A team with this name already exists";
+    
+    return "";
+  }
+
+  // Clear error when user types
+  $: {
+    teamNameError = validateTeamName(newTeamName);
+  }
 
   onMount(async () => {
     // 1. Initialize Stores (Fetch + Subscribe)
@@ -36,26 +56,36 @@
   // GAME LOGIC (Now Client-Side)
 
   async function handleCreateTeam() {
+    operationError = "";
+    
+    // Validate before proceeding
+    if (newTeamName.trim() && teamNameError) {
+      operationError = teamNameError;
+      return;
+    }
+    
     isActionPending = true;
     try {
       const teamName = newTeamName.trim() || undefined;
       const result = await createTeam(teamName);
       if (!result.success) {
-        alert(`Failed to create team: ${result.error}`);
+        operationError = `Failed to create team: ${result.error}`;
       } else {
         newTeamName = ""; // Clear input on success
       }
     } catch (error: any) {
       console.error("Create team failed:", error);
-      alert("Failed to create team");
+      operationError = error.message || "Failed to create team";
     } finally {
       isActionPending = false;
     }
   }
 
   async function handleShuffle() {
+    operationError = "";
+    
     if (teamSize < 1) {
-      alert("Team size must be at least 1");
+      operationError = "Team size must be at least 1";
       return;
     }
 
@@ -67,7 +97,11 @@
     const shuffled = [...$players];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      const temp = shuffled[i];
+      const item = shuffled[j];
+      if (temp && item) {
+        [shuffled[i], shuffled[j]] = [item, temp];
+      }
     }
 
     try {
@@ -108,6 +142,9 @@
       const updates = shuffled.map((p, index) => {
         const teamIndex = Math.floor(index / teamSize) % $teams.length;
         const team = $teams[teamIndex];
+        if (!team) {
+          throw new Error(`Team not found at index ${teamIndex}`);
+        }
         return {
           id: p.id,
           team_id: team.id,
@@ -119,9 +156,9 @@
       const { error } = await supabase.from("players").upsert(updates);
 
       if (error) throw error;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Shuffle failed:", error);
-      alert("Failed to update teams on server");
+      operationError = error.message || "Failed to shuffle players into teams";
     } finally {
       isActionPending = false;
     }
@@ -140,6 +177,7 @@
   }
 
   async function saveManualAssignments() {
+    operationError = "";
     isActionPending = true;
     try {
       // Prepare updates
@@ -157,9 +195,9 @@
       if (error) throw error;
 
       hideManualAssignment();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Manual assign failed:", error);
-      alert("Failed to save teams");
+      operationError = error.message || "Failed to save team assignments";
     } finally {
       isActionPending = false;
     }
@@ -169,15 +207,16 @@
     if (!confirm("Are you sure you want to reset all players and teams?")) {
       return;
     }
+    operationError = "";
     isActionPending = true;
 
     try {
       // Use RPC to clear both tables cleanly
       const { error } = await supabase.rpc("reset_game");
       if (error) throw error;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Reset failed:", error);
-      alert("Failed to reset game");
+      operationError = error.message || "Failed to reset game";
     } finally {
       isActionPending = false;
     }
@@ -234,23 +273,43 @@
   <div class="team-management">
     <h2>Team Management</h2>
 
+    <!-- Error Message Display -->
+    {#if operationError}
+      <div class="error-banner">
+        <span class="error-icon">⚠️</span>
+        <span>{operationError}</span>
+        <button class="error-close" onclick={() => (operationError = "")}>×</button>
+      </div>
+    {/if}
+
     <div class="team-controls">
       <!-- Row 1: Create Team -->
       <div class="control-group">
-        <input
-          type="text"
-          id="newTeamName"
-          bind:value={newTeamName}
-          placeholder="Team name (optional)"
-          disabled={isActionPending}
-        />
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="newTeamName"
+            bind:value={newTeamName}
+            placeholder="Team name (optional)"
+            maxlength="50"
+            disabled={isActionPending}
+          />
+          {#if teamNameError}
+            <span class="validation-error">{teamNameError}</span>
+          {/if}
+        </div>
         <button
           id="createTeamBtn"
           class="btn btn-success"
-          disabled={isActionPending}
-          on:click={handleCreateTeam}
+          disabled={isActionPending || !!teamNameError}
+          onclick={handleCreateTeam}
         >
-          ➕ Create Team
+          {#if isActionPending}
+            <span class="spinner"></span>
+          {:else}
+            ➕
+          {/if}
+          Create Team
         </button>
       </div>
 
@@ -260,9 +319,14 @@
           id="shuffleBtn"
           class="btn btn-primary"
           disabled={!hasPlayers || isActionPending}
-          on:click={handleShuffle}
+          onclick={handleShuffle}
         >
-          🎲 Random Shuffle
+          {#if isActionPending}
+            <span class="spinner"></span>
+          {:else}
+            🎲
+          {/if}
+          Random Shuffle
         </button>
         <input
           type="number"
@@ -270,12 +334,13 @@
           min="1"
           bind:value={teamSize}
           placeholder="Team size"
+          disabled={isActionPending}
         />
         <button
           id="manualAssignBtn"
           class="btn btn-secondary"
           disabled={!hasPlayers || isActionPending || !hasTeams}
-          on:click={showManualAssignment}
+          onclick={showManualAssignment}
         >
           ✋ Manual Assign
         </button>
@@ -287,9 +352,14 @@
           id="resetBtn"
           class="btn btn-danger"
           disabled={isActionPending}
-          on:click={handleReset}
+          onclick={handleReset}
         >
-          🔄 Reset All
+          {#if isActionPending}
+            <span class="spinner"></span>
+          {:else}
+            🔄
+          {/if}
+          Reset All
         </button>
       </div>
     </div>
@@ -303,8 +373,9 @@
             <div class="assign-player-row">
               <span class="player-name">{player.name}</span>
               <div class="team-selector">
-                <label>Team:</label>
+                <label for="team-{player.id}">Team:</label>
                 <select
+                  id="team-{player.id}"
                   bind:value={manualAssignments[player.id]}
                   class="team-input"
                 >
@@ -315,7 +386,7 @@
                 </select>
                 <button
                   class="btn-small"
-                  on:click={() => (manualAssignments[player.id] = null)}
+                  onclick={() => (manualAssignments[player.id] = null)}
                 >
                   Clear
                 </button>
@@ -325,14 +396,19 @@
         </div>
         <button
           class="btn btn-success"
-          on:click={saveManualAssignments}
+          onclick={saveManualAssignments}
           disabled={isActionPending}
         >
+          {#if isActionPending}
+            <span class="spinner"></span>
+          {:else}
+            💾
+          {/if}
           Save Team Assignments
         </button>
         <button
           class="btn"
-          on:click={hideManualAssignment}
+          onclick={hideManualAssignment}
           disabled={isActionPending}>Cancel</button
         >
       </div>

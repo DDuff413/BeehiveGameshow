@@ -1,6 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { players, teams, teamsWithPlayers, initializeStores } from "../lib/db/store";
+  import {
+    players,
+    teams,
+    teamsWithPlayers,
+    initializeStores,
+  } from "../lib/db/store";
   import { supabase } from "../lib/db/supabase";
   import { createTeam } from "../lib/db/teamOperations";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
@@ -81,8 +86,23 @@
             throw new Error(`Failed to create team: ${result.error}`);
           }
         }
-        // Wait a moment for realtime to update the teams store
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Wait for realtime to update the teams store
+        const waitForTeams = new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            unsubscribe();
+            reject(new Error("Timeout waiting for teams to be created"));
+          }, 5000);
+
+          const unsubscribe = teams.subscribe((currentTeams) => {
+            if (currentTeams.length >= teamsNeeded) {
+              clearTimeout(timeout);
+              unsubscribe();
+              resolve();
+            }
+          });
+        });
+
+        await waitForTeams;
       }
 
       // Assign players to teams in round-robin fashion
@@ -199,8 +219,10 @@
             <div class="player-card {player.team_id ? 'assigned' : ''}">
               <span class="player-name">{player.name}</span>
               {#if player.team_id}
-                {@const playerTeam = $teams.find(t => t.id === player.team_id)}
-                <span class="team-badge">{playerTeam?.name || 'Team'}</span>
+                {@const playerTeam = $teams.find(
+                  (t) => t.id === player.team_id
+                )}
+                <span class="team-badge">{playerTeam?.name || "Team"}</span>
               {/if}
             </div>
           {/each}

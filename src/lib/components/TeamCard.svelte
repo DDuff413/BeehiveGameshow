@@ -35,7 +35,7 @@
     } else {
       playersToRemove.add(playerId);
     }
-    playersToRemove = playersToRemove; // Trigger reactivity
+    playersToRemove = new Set(playersToRemove); // Create new reference for reactivity
   }
 
   function addPlayerSelection() {

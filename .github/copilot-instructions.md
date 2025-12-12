@@ -111,6 +111,33 @@ src/
 4.  **Database Operations**: Team and player CRUD operations are centralized in `src/lib/db/teamOperations.ts` and `src/lib/db/playerOperations.ts`.
 5.  **Component Organization**: UI components live in `src/lib/components/`, database logic in `src/lib/db/`, shared types at `src/lib/types.ts`.
 
+## Context7 Documentation Validation
+
+When implementing features or solving problems involving external libraries/frameworks (Svelte, Supabase, TypeScript, etc.):
+
+**Always use Context7 for:**
+
+- New feature implementations using library APIs
+- Debugging library-specific issues
+- Best practices for framework patterns
+- Version-specific API changes
+- Unfamiliar API usage or syntax
+
+**Context7 is optional for:**
+
+- Simple TypeScript fixes
+- CSS/styling changes
+- File organization/refactoring
+- Custom business logic
+
+**Workflow:**
+
+1. Call `resolve-library-id` first to get the Context7-compatible library ID
+2. Then call `get-library-docs` with relevant topic before implementing
+3. Use `mode='code'` for API references and examples (default)
+4. Use `mode='info'` for conceptual guides and architecture
+5. **Component Organization**: UI components live in `src/lib/components/`, database logic in `src/lib/db/`, shared types at `src/lib/types.ts`.
+
 ## Common Workflows
 
 1.  **Run Dev**: `npm run dev`

@@ -79,9 +79,8 @@
       if (teamsNeeded > currentTeamCount) {
         const teamsToCreate = teamsNeeded - currentTeamCount;
         for (let i = 0; i < teamsToCreate; i++) {
-          const teamNumber = currentTeamCount + i + 1;
-          const teamName = `Team ${teamNumber}`;
-          const result = await createTeam(teamName);
+          // Let createTeam generate random names automatically
+          const result = await createTeam();
           if (!result.success) {
             throw new Error(`Failed to create team: ${result.error}`);
           }

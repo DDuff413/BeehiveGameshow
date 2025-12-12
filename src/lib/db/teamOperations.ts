@@ -1,5 +1,14 @@
+import {
+  adjectives,
+  animals,
+  colors,
+  uniqueNamesGenerator,
+} from "unique-names-generator";
+
+import type { Config } from "unique-names-generator";
 import type { Player } from "../types";
 import { get } from "svelte/store";
+import pluralize from "pluralize";
 import { supabase } from "./supabase";
 import { teams } from "./store";
 
@@ -10,16 +19,36 @@ export interface TeamUpdateData {
 }
 
 /**
- * Create a new team with auto-generated name "Team X"
- * @param teamName - Optional custom team name. If not provided, generates "Team X" based on current count
+ * Generate a random team name like "Quick Oxen" or "Brave Tigers"
+ */
+function generateRandomTeamName(): string {
+  const adjective = uniqueNamesGenerator({
+    dictionaries: [adjectives],
+    length: 1,
+    style: "capital",
+  });
+
+  const animal = uniqueNamesGenerator({
+    dictionaries: [animals],
+    length: 1,
+    style: "capital",
+  });
+
+  const pluralAnimal = pluralize(animal);
+
+  return `${adjective} ${pluralAnimal}`;
+}
+
+/**
+ * Create a new team with auto-generated or custom name
+ * @param teamName - Optional custom team name. If not provided, generates a fun random name like "Quick Apples"
  */
 export async function createTeam(teamName?: string): Promise<{
   success: boolean;
   error?: string;
 }> {
   try {
-    const currentTeams = get(teams);
-    const name = teamName ?? `Team ${currentTeams.length + 1}`;
+    const name = teamName ?? generateRandomTeamName();
 
     const { error } = await supabase.from("teams").insert([{ name }]);
 

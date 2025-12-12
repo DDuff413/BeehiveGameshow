@@ -3,6 +3,7 @@
   import { createTeam } from "../db/teamOperations";
   import { supabase } from "../db/supabase";
   import { teams } from "../db/store";
+  import { get } from "svelte/store";
   import {
     DEFAULT_TEAM_SIZE,
     MIN_TEAM_SIZE,
@@ -127,10 +128,13 @@
         await waitForTeams;
       }
 
+      // Get the updated teams from the store (not the stale prop)
+      const currentTeams = get(teams);
+
       // Assign players to teams in round-robin fashion
       const updates = shuffled.map((p, index) => {
-        const teamIndex = Math.floor(index / teamSize) % allTeams.length;
-        const team = allTeams[teamIndex];
+        const teamIndex = Math.floor(index / teamSize) % currentTeams.length;
+        const team = currentTeams[teamIndex];
         if (!team) {
           throw new Error(`Team not found at index ${teamIndex}`);
         }

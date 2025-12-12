@@ -2,7 +2,8 @@
   import { onMount } from "svelte";
   import { supabase } from "../lib/db/supabase";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
-  import { initializeStores } from "../lib/db/store";
+  import { initializeStores, players } from "../lib/db/store";
+  import { MAX_NAME_LENGTH } from "../lib/constants";
 
   onMount(() => {
     initializeStores();
@@ -10,17 +11,45 @@
 
   let playerName = "";
   let errorMessage = "";
+  let validationError = "";
   // isJoined could optionally be persisted in localStorage to handle refreshes
   let isJoined = false;
   let joinedName = "";
   let isSubmitting = false;
 
+  // Validation function
+  function validatePlayerName(name: string): string {
+    const trimmed = name.trim();
+    
+    if (!trimmed) return "Name is required";
+    if (trimmed.length > MAX_NAME_LENGTH) return `Name must be ${MAX_NAME_LENGTH} characters or less`;
+    
+    // Check for duplicates (case-insensitive)
+    const duplicate = $players.find(
+      (p) => p.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (duplicate) return "This name is already taken";
+    
+    return "";
+  }
+
+  // Clear validation error when user types
+  $: {
+    if (playerName.trim()) {
+      validationError = validatePlayerName(playerName);
+    } else {
+      validationError = "";
+    }
+  }
+
   async function joinGame() {
     errorMessage = "";
     const name = playerName.trim();
 
-    if (!name) {
-      errorMessage = "Please enter your name";
+    // Final validation check
+    const validationResult = validatePlayerName(playerName);
+    if (validationResult) {
+      errorMessage = validationResult;
       return;
     }
 
@@ -48,7 +77,7 @@
   }
 
   function handleKeyPress(event: KeyboardEvent) {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !validationError && !isSubmitting) {
       joinGame();
     }
   }
@@ -66,23 +95,32 @@
     {#if !isJoined}
       <div id="joinForm" class="join-form">
         <h2>Enter Your Name</h2>
-        <input
-          type="text"
-          id="playerName"
-          placeholder="Your name"
-          maxlength="50"
-          bind:value={playerName}
-          on:keypress={handleKeyPress}
-          autofocus
-          disabled={isSubmitting}
-        />
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="playerName"
+            placeholder="Your name"
+            maxlength={MAX_NAME_LENGTH}
+            bind:value={playerName}
+            onkeypress={handleKeyPress}
+            disabled={isSubmitting}
+          />
+          {#if validationError}
+            <span class="validation-error">{validationError}</span>
+          {/if}
+        </div>
         <button
           id="joinBtn"
           class="btn btn-primary btn-large"
-          on:click={joinGame}
-          disabled={isSubmitting}
+          onclick={joinGame}
+          disabled={isSubmitting || !!validationError}
         >
-          {isSubmitting ? "Joining..." : "Join Game"}
+          {#if isSubmitting}
+            <span class="spinner"></span>
+            Joining...
+          {:else}
+            Join Game
+          {/if}
         </button>
         {#if errorMessage}
           <p id="errorMessage" class="error-message">{errorMessage}</p>

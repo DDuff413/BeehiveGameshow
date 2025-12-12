@@ -1,3 +1,8 @@
+import {
+  INITIAL_RETRY_DELAY,
+  MAX_RETRY_ATTEMPTS,
+  MAX_RETRY_DELAY,
+} from "../constants";
 import type { Player, Team } from "../types";
 import { derived, writable } from "svelte/store";
 
@@ -8,8 +13,9 @@ import { supabase } from "./supabase";
 export const players = writable<Player[]>([]);
 export const teams = writable<Team[]>([]);
 export const connectionStatus = writable<
-  "connected" | "disconnected" | "error"
+  "connected" | "disconnected" | "error" | "reconnecting"
 >("disconnected");
+export const errorMessage = writable<string | null>(null);
 
 // Derived store: teams with their players populated
 export const teamsWithPlayers = derived(
@@ -26,7 +32,33 @@ export const teamsWithPlayers = derived(
 let playersSubscription: RealtimeChannel | null = null;
 let teamsSubscription: RealtimeChannel | null = null;
 let retryCount = 0;
-const MAX_RETRIES = 2; // Total 3 attempts (1 initial + 2 retries)
+
+// Manual reconnection function
+export function reconnect() {
+  retryCount = 0;
+  errorMessage.set(null);
+  cleanupSubscriptions();
+  initializeStores();
+}
+
+function cleanupSubscriptions() {
+  if (playersSubscription) {
+    playersSubscription.unsubscribe();
+    playersSubscription = null;
+  }
+  if (teamsSubscription) {
+    teamsSubscription.unsubscribe();
+    teamsSubscription = null;
+  }
+}
+
+function getRetryDelay(): number {
+  // Exponential backoff: 2s, 4s, 8s, 16s, 32s
+  return Math.min(
+    INITIAL_RETRY_DELAY * Math.pow(2, retryCount),
+    MAX_RETRY_DELAY
+  );
+}
 
 // Initial Fetch & Realtime Subscription
 export async function initializeStores() {
@@ -44,14 +76,19 @@ export async function initializeStores() {
   if (playersError) {
     console.error("Error fetching players:", playersError);
     connectionStatus.set("error");
+    errorMessage.set(`Failed to fetch players: ${playersError.message}`);
 
     // Attempt retry if under limit
-    if (retryCount < MAX_RETRIES) {
+    if (retryCount < MAX_RETRY_ATTEMPTS) {
       retryCount++;
+      const delay = getRetryDelay();
+      connectionStatus.set("reconnecting");
       console.log(
-        `Fetch failed. Retrying in 5s... (${retryCount}/${MAX_RETRIES})`
+        `Fetch failed. Retrying in ${
+          delay / 1000
+        }s... (${retryCount}/${MAX_RETRY_ATTEMPTS})`
       );
-      setTimeout(initializeStores, 5000);
+      setTimeout(initializeStores, delay);
     }
     return;
   }
@@ -65,13 +102,18 @@ export async function initializeStores() {
   if (teamsError) {
     console.error("Error fetching teams:", teamsError);
     connectionStatus.set("error");
+    errorMessage.set(`Failed to fetch teams: ${teamsError.message}`);
 
-    if (retryCount < MAX_RETRIES) {
+    if (retryCount < MAX_RETRY_ATTEMPTS) {
       retryCount++;
+      const delay = getRetryDelay();
+      connectionStatus.set("reconnecting");
       console.log(
-        `Fetch failed. Retrying in 5s... (${retryCount}/${MAX_RETRIES})`
+        `Fetch failed. Retrying in ${
+          delay / 1000
+        }s... (${retryCount}/${MAX_RETRY_ATTEMPTS})`
       );
-      setTimeout(initializeStores, 5000);
+      setTimeout(initializeStores, delay);
     }
     return;
   }
@@ -80,6 +122,8 @@ export async function initializeStores() {
   players.set(playersData as Player[]);
   teams.set(teamsData as Team[]);
   connectionStatus.set("connected");
+  errorMessage.set(null);
+  retryCount = 0;
 
   // 3. Subscribe to Realtime changes for players
   playersSubscription = supabase
@@ -155,32 +199,34 @@ export async function initializeStores() {
 function handleSubscriptionStatus(status: string, channelName: string) {
   if (status === "SUBSCRIBED") {
     connectionStatus.set("connected");
+    errorMessage.set(null);
     retryCount = 0; // Reset retries on success
   } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
     console.error(`Realtime subscription error (${channelName}):`, status);
     connectionStatus.set("error");
+    errorMessage.set(`Connection lost. Attempting to reconnect...`);
 
     // Clean up subscriptions to allow retry
-    if (playersSubscription) {
-      playersSubscription.unsubscribe();
-      playersSubscription = null;
-    }
-    if (teamsSubscription) {
-      teamsSubscription.unsubscribe();
-      teamsSubscription = null;
-    }
+    cleanupSubscriptions();
 
-    // Attempt reconnection after 5 seconds if under limit
-    if (retryCount < MAX_RETRIES) {
+    // Attempt reconnection with exponential backoff if under limit
+    if (retryCount < MAX_RETRY_ATTEMPTS) {
       retryCount++;
+      const delay = getRetryDelay();
+      connectionStatus.set("reconnecting");
       console.log(
-        `Attempting reconnection in 5 seconds... (Attempt ${retryCount}/${MAX_RETRIES})`
+        `Attempting reconnection in ${
+          delay / 1000
+        } seconds... (Attempt ${retryCount}/${MAX_RETRY_ATTEMPTS})`
       );
       setTimeout(() => {
         initializeStores();
-      }, 5000);
+      }, delay);
     } else {
-      console.error("Max reconnection attempts reached. Giving up.");
+      errorMessage.set(
+        "Connection failed. Please refresh the page or try again later."
+      );
+      console.error("Max reconnection attempts reached.");
     }
   }
 }

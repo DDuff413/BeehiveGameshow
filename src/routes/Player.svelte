@@ -11,6 +11,7 @@
   import type { Player, Team } from "../lib/types";
   import { navigate } from "../lib/router";
 
+  let playerId: string | null = null;
   let currentPlayer: Player | undefined;
   let currentTeam: Team | undefined;
   let teammates: Player[] = [];
@@ -22,7 +23,7 @@
     await initializeStores();
 
     // 2. Check Session
-    const playerId = localStorage.getItem("beehive_player_id");
+    playerId = localStorage.getItem("beehive_player_id");
     if (!playerId) {
       navigate("/join");
       return;
@@ -30,7 +31,6 @@
   });
 
   // Reactive Logic
-  $: playerId = localStorage.getItem("beehive_player_id");
 
   // Find Current Player
   $: currentPlayer = $players.find((p) => p.id === playerId);

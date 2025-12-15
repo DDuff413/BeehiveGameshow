@@ -9,13 +9,26 @@
   onMount(async () => {
     // 1. Initialize Stores
     await initializeStores();
-
-    // 2. Check Session
-    const existingId = localStorage.getItem("beehive_player_id");
-    if (existingId) {
-      navigate("/player");
-    }
   });
+
+  // Reactive Session Check
+  // We wait for connection AND data to be ready before deciding to redirect.
+  $: {
+    if ($connectionStatus === "connected") {
+      const existingId = localStorage.getItem("beehive_player_id");
+      if (existingId) {
+        // Validate that the player actually exists in the DB (fetched by store)
+        const playerExists = $players.find((p) => p.id === existingId);
+
+        if (playerExists) {
+          navigate("/player");
+        } else {
+          // Stale session (deleted player), clean it up
+          localStorage.removeItem("beehive_player_id");
+        }
+      }
+    }
+  }
 
   let playerName = "";
   let errorMessage = "";

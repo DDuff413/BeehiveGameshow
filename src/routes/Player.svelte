@@ -90,7 +90,7 @@
       <div class="player-header-card">
         <h2>{currentPlayer.name}</h2>
         <div class="points-display">
-          <span class="points-value">{currentPlayer.points || 0}</span>
+          <span class="points-value">{currentPlayer.points ?? 0}</span>
           <span class="points-label">PTS</span>
         </div>
       </div>

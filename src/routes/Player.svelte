@@ -36,7 +36,9 @@
   $: currentPlayer = $players.find((p) => p.id === playerId);
 
   // Handle Removal / Invalid Session
-  // Only redirect if we are fully connected and confirmed not to be in the list
+  // Only redirect if we are fully connected and confirmed not to be in the list.
+  // This implicitly handles the "reconnecting" -> "connected" transition:
+  // once connection is restored, this block re-evaluates.
   $: if ($connectionStatus === "connected" && !currentPlayer && playerId) {
     alert("You have been removed from the game.");
     localStorage.removeItem("beehive_player_id");

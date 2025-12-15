@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import Host from "./routes/Host.svelte";
   import Join from "./routes/Join.svelte";
+  import Player from "./routes/Player.svelte";
 
   let currentPath = $state(window.location.pathname);
 
@@ -51,6 +52,8 @@
 
 {#if currentPath === "/join"}
   <Join />
+{:else if currentPath === "/player"}
+  <Player />
 {:else}
   <Host />
 {/if}

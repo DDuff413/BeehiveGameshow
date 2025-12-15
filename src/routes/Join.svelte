@@ -5,8 +5,15 @@
   import { initializeStores, players } from "../lib/db/store";
   import { MAX_NAME_LENGTH } from "../lib/constants";
 
-  onMount(() => {
-    initializeStores();
+  onMount(async () => {
+    // 1. Initialize Stores
+    await initializeStores();
+
+    // 2. Check Session
+    const existingId = localStorage.getItem("beehive_player_id");
+    if (existingId) {
+      window.location.href = "/player";
+    }
   });
 
   let playerName = "";
@@ -20,16 +27,17 @@
   // Validation function
   function validatePlayerName(name: string): string {
     const trimmed = name.trim();
-    
+
     if (!trimmed) return "Name is required";
-    if (trimmed.length > MAX_NAME_LENGTH) return `Name must be ${MAX_NAME_LENGTH} characters or less`;
-    
+    if (trimmed.length > MAX_NAME_LENGTH)
+      return `Name must be ${MAX_NAME_LENGTH} characters or less`;
+
     // Check for duplicates (case-insensitive)
     const duplicate = $players.find(
       (p) => p.name.toLowerCase() === trimmed.toLowerCase()
     );
     if (duplicate) return "This name is already taken";
-    
+
     return "";
   }
 
@@ -57,13 +65,25 @@
 
     try {
       // Direct insert to Supabase
-      const { error } = await supabase.from("players").insert([{ name }]);
+      const { data, error } = await supabase
+        .from("players")
+        .insert([{ name }])
+        .select()
+        .single();
 
       if (error) throw error;
 
       // Show success message
       isJoined = true;
       joinedName = name;
+
+      // Save session and redirect
+      if (data) {
+        localStorage.setItem("beehive_player_id", data.id);
+        setTimeout(() => {
+          window.location.href = "/player";
+        }, 1000);
+      }
     } catch (error: any) {
       console.error("Error joining game:", error);
       if (error.code === "23505") {

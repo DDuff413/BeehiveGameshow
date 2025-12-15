@@ -44,7 +44,7 @@
             class="btn-icon delete-btn"
             title="Remove Player"
             disabled={isActionPending}
-            onclick={() => handleRemove(player.id, player.name)}
+            on:click={() => handleRemove(player.id, player.name)}
           >
             🗑️
           </button>

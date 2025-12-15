@@ -123,7 +123,7 @@
             placeholder="Your name"
             maxlength={MAX_NAME_LENGTH}
             bind:value={playerName}
-            onkeypress={handleKeyPress}
+            on:keypress={handleKeyPress}
             disabled={isSubmitting}
           />
           {#if validationError}
@@ -133,7 +133,7 @@
         <button
           id="joinBtn"
           class="btn btn-primary btn-large"
-          onclick={joinGame}
+          on:click={joinGame}
           disabled={isSubmitting || !!validationError}
         >
           {#if isSubmitting}

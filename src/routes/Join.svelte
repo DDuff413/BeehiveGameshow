@@ -91,12 +91,9 @@
       isJoined = true;
       joinedName = name;
 
-      // Save session and redirect
+      // Save session - redirection happens automatically via reactive statement
       if (data) {
         localStorage.setItem("beehive_player_id", data.id);
-        setTimeout(() => {
-          navigate("/player");
-        }, 1000);
       }
     } catch (error: any) {
       console.error("Error joining game:", error);

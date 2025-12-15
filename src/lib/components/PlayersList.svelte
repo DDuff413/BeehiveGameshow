@@ -18,7 +18,7 @@
       }
     } catch (e) {
       console.error(e);
-      alert("Error removing player");
+      alert("Error removing player: " + (e && e.message ? e.message : String(e)));
     } finally {
       isActionPending = false;
     }

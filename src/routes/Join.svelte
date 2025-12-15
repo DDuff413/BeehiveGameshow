@@ -4,6 +4,7 @@
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
   import { initializeStores, players } from "../lib/db/store";
   import { MAX_NAME_LENGTH } from "../lib/constants";
+  import { navigate } from "../lib/router";
 
   onMount(async () => {
     // 1. Initialize Stores
@@ -12,7 +13,7 @@
     // 2. Check Session
     const existingId = localStorage.getItem("beehive_player_id");
     if (existingId) {
-      window.location.href = "/player";
+      navigate("/player");
     }
   });
 
@@ -81,7 +82,7 @@
       if (data) {
         localStorage.setItem("beehive_player_id", data.id);
         setTimeout(() => {
-          window.location.href = "/player";
+          navigate("/player");
         }, 1000);
       }
     } catch (error: any) {

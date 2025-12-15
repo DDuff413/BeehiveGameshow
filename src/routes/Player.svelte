@@ -9,6 +9,7 @@
   import { removePlayer } from "../lib/db/playerOperations";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
   import type { Player, Team } from "../lib/types";
+  import { navigate } from "../lib/router";
 
   let currentPlayer: Player | undefined;
   let currentTeam: Team | undefined;
@@ -23,7 +24,7 @@
     // 2. Check Session
     const playerId = localStorage.getItem("beehive_player_id");
     if (!playerId) {
-      window.location.href = "/join";
+      navigate("/join");
       return;
     }
   });
@@ -39,7 +40,7 @@
   $: if ($connectionStatus === "connected" && !currentPlayer && playerId) {
     alert("You have been removed from the game.");
     localStorage.removeItem("beehive_player_id");
-    window.location.href = "/join";
+    navigate("/join");
   }
 
   // Find Current Team
@@ -65,7 +66,7 @@
         throw new Error(result.error);
       }
       localStorage.removeItem("beehive_player_id");
-      window.location.href = "/join";
+      navigate("/join");
     } catch (error: any) {
       console.error("Leave game failed:", error);
       alert("Failed to leave game: " + error.message);

@@ -94,7 +94,7 @@
     </div>
   {:else if currentPlayer}
     <header>
-      <h1>🐝 Beehive</h1>
+      <h1><img src="/beehive-icon.png" alt="Beehive" class="title-icon" /> Beehive</h1>
       <p class="subtitle">Player Dashboard</p>
     </header>
 

@@ -96,6 +96,17 @@ h1 {
   font-size: 2.5rem;
   color: var(--text-color);
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.title-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  vertical-align: middle;
 }
 
 .subtitle {
@@ -525,19 +536,42 @@ input:focus {
 }
 
 .loading-container {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
+  justify-content: flex-end;
+  min-height: 400px;
+  padding: 60px 20px 80px;
   text-align: center;
-  color: #666;
+  background-image: url("/dan-but-a-bee.jpg");
+  background-size: contain;
+  background-position: center top;
+  background-repeat: no-repeat;
+  background-color: var(--bg-color);
+}
+
+.loading-spinner-large {
+  display: inline-block;
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  max-width: 100%;
+}
+
+.loading-container > * {
+  max-width: min(100%, 250px);
 }
 
 .loading-container p {
   margin-top: 20px;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
   color: var(--text-color);
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
 }
 
 @keyframes spin {

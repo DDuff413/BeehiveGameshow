@@ -191,7 +191,7 @@
 
 <div class="container join-container">
   <header>
-    <h1>🐝 Gameshow of Totally Reasonable and Normal Games</h1>
+    <h1><img src="/beehive-icon.png" alt="Beehive" class="title-icon" /> Gameshow of Totally Reasonable and Normal Games</h1>
     <p class="subtitle">Join the Game</p>
   </header>
 

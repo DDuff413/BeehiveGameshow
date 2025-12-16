@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onDestroy } from "svelte";
+
   export let message: string = "";
   export let autoDismiss: boolean = false;
   export let dismissDelay: number = 5000;
@@ -15,6 +17,14 @@
       handleDismiss();
     }, dismissDelay);
   }
+
+  // Cleanup timeout when component is destroyed
+  onDestroy(() => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+  });
 
   function handleDismiss() {
     if (timeoutId) {
@@ -46,17 +56,17 @@
 
 <style>
   .error-banner-component {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-    padding: 12px 16px !important;
-    background-color: #fee !important;
-    border: 1px solid #fcc !important;
-    border-radius: 8px !important;
-    color: #c33 !important;
-    margin-bottom: 16px !important;
-    margin-top: 0 !important;
-    font-weight: 500 !important;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: #fee;
+    border: 1px solid #fcc;
+    border-radius: 8px;
+    color: #c33;
+    margin-bottom: 16px;
+    margin-top: 0;
+    font-weight: 500;
     animation: errorSlideDown 0.3s ease-out;
   }
 
@@ -72,39 +82,39 @@
   }
 
   .error-banner-icon {
-    font-size: 1.2rem !important;
-    flex-shrink: 0 !important;
+    font-size: 1.2rem;
+    flex-shrink: 0;
   }
 
   .error-banner-text {
-    flex: 1 !important;
-    font-size: 0.95rem !important;
-    line-height: 1.4 !important;
-    color: #c33 !important;
-    margin: 0 !important;
+    flex: 1;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: #c33;
+    margin: 0;
   }
 
   .error-banner-dismiss {
-    background: none !important;
-    border: none !important;
-    color: #c33 !important;
-    cursor: pointer !important;
-    font-size: 1.2rem !important;
-    padding: 4px 8px !important;
-    opacity: 0.7 !important;
-    transition: opacity 0.2s !important;
-    flex-shrink: 0 !important;
-    margin-left: auto !important;
-    line-height: 1 !important;
+    background: none;
+    border: none;
+    color: #c33;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 4px 8px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+    margin-left: auto;
+    line-height: 1;
   }
 
   .error-banner-dismiss:hover {
-    opacity: 1 !important;
+    opacity: 1;
   }
 
   .error-banner-dismiss:focus {
-    outline: 2px solid #c33 !important;
-    outline-offset: 2px !important;
-    border-radius: 4px !important;
+    outline: 2px solid #c33;
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 </style>

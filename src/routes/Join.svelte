@@ -2,29 +2,40 @@
   import { onMount } from "svelte";
   import { supabase } from "../lib/db/supabase";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
-  import { initializeStores, players } from "../lib/db/store";
+  import { initializeStores, players, connectionStatus } from "../lib/db/store";
   import { MAX_NAME_LENGTH } from "../lib/constants";
   import { navigate } from "../lib/router";
+  import type { Player } from "../lib/types";
 
   onMount(async () => {
     // 1. Initialize Stores
     await initializeStores();
   });
 
+  let currentJoinId: string | null = null; // Track ID we are currently attempting to join with
+
   // Reactive Session Check
   // We wait for connection AND data to be ready before deciding to redirect.
   $: {
-    if ($connectionStatus === "connected") {
+    if ($connectionStatus === "connected" && !isSubmitting) {
       const existingId = localStorage.getItem("beehive_player_id");
       if (existingId) {
-        // Validate that the player actually exists in the DB (fetched by store)
-        const playerExists = $players.find((p) => p.id === existingId);
-
-        if (playerExists) {
-          navigate("/player");
+        // If this is the ID we just joined with, skip this check
+        // (let joinGame handle the waiting/redirect to avoid race conditions)
+        if (currentJoinId === existingId) {
+          // Do nothing, joinGame is handling it
         } else {
-          // Stale session (deleted player), clean it up
-          localStorage.removeItem("beehive_player_id");
+          // Validate that the player actually exists in the DB (fetched by store)
+          const playerExists = $players.find(
+            (p: Player) => p.id === existingId
+          );
+
+          if (playerExists) {
+            navigate("/player");
+          } else {
+            // Stale session (deleted player), clean it up
+            localStorage.removeItem("beehive_player_id");
+          }
         }
       }
     }
@@ -48,7 +59,7 @@
 
     // Check for duplicates (case-insensitive)
     const duplicate = $players.find(
-      (p) => p.name.toLowerCase() === trimmed.toLowerCase()
+      (p: Player) => p.name.toLowerCase() === trimmed.toLowerCase()
     );
     if (duplicate) return "This name is already taken";
 
@@ -91,9 +102,26 @@
       isJoined = true;
       joinedName = name;
 
-      // Save session - redirection happens automatically via reactive statement
+      // Save session
       if (data) {
+        currentJoinId = data.id; // Mark this ID as "just joined"
         localStorage.setItem("beehive_player_id", data.id);
+
+        // Wait for the player to appear in the store (Realtime sync)
+        // This prevents a race condition where we redirect before the store knows about us
+        const checkStore = setInterval(() => {
+          const exists = $players.find((p: Player) => p.id === data.id);
+          if (exists) {
+            clearInterval(checkStore);
+            navigate("/player");
+          }
+        }, 100);
+
+        // Safety timeout (5s) to force redirect if realtime fails
+        setTimeout(() => {
+          clearInterval(checkStore);
+          navigate("/player");
+        }, 5000);
       }
     } catch (error: any) {
       console.error("Error joining game:", error);

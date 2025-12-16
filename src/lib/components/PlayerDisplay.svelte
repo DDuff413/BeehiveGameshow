@@ -49,26 +49,28 @@
     </div>
   </div>
 {:else if variant === "team"}
-  <div class="team-member-display">
-    <span class="team-member-name">{player.name}</span>
-    {#if showPoints && showPointControls}
-      <div class="member-controls">
-        <button
-          class="btn-point small minus"
-          on:click={() => adjustPoints(-1)}
-          disabled={(player.points ?? 0) <= 0}
-          aria-label="Subtract 1 point from {player.name}"
-        >-</button>
-        <span class="member-points">{player.points ?? 0}</span>
-        <button
-          class="btn-point small plus"
-          on:click={() => adjustPoints(1)}
-          aria-label="Add 1 point to {player.name}"
-        >+</button>
-      </div>
-    {:else if showPoints}
-      <span class="team-member-points">{player.points ?? 0} pts</span>
-    {/if}
+  <div class="team-member-wrapper">
+    <div class="team-member-display">
+      <span class="team-member-name">{player.name}</span>
+      {#if showPoints && showPointControls}
+        <div class="member-controls">
+          <button
+            class="btn-point small minus"
+            on:click={() => adjustPoints(-1)}
+            disabled={(player.points ?? 0) <= 0}
+            aria-label="Subtract 1 point from {player.name}"
+          >-</button>
+          <span class="member-points">{player.points ?? 0}</span>
+          <button
+            class="btn-point small plus"
+            on:click={() => adjustPoints(1)}
+            aria-label="Add 1 point to {player.name}"
+          >+</button>
+        </div>
+      {:else if showPoints}
+        <span class="team-member-points">{player.points ?? 0} pts</span>
+      {/if}
+    </div>
     {#if pointsError}
       <span class="points-error">{pointsError}</span>
     {/if}
@@ -226,9 +228,16 @@
   }
 
   /* Team variant */
+  .team-member-wrapper {
+    margin-bottom: 8px;
+  }
+
+  .team-member-wrapper:last-child {
+    margin-bottom: 0;
+  }
+
   .team-member-display {
     padding: 10px 12px;
-    margin-bottom: 8px;
     background: var(--bg-color);
     border-radius: 6px;
     border-left: 4px solid var(--primary-color);
@@ -237,10 +246,6 @@
     gap: 10px;
     width: 100%;
     box-sizing: border-box;
-  }
-
-  .team-member-display:last-child {
-    margin-bottom: 0;
   }
 
   .team-member-name {
@@ -312,10 +317,11 @@
   }
 
   .points-error {
-    width: 100%;
+    display: block;
     color: var(--danger-color);
     font-size: 0.85rem;
     margin-top: 4px;
+    padding-left: 16px;
   }
 
   /* Grid variant */

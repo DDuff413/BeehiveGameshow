@@ -73,6 +73,30 @@ as $$
   delete from teams where true;
 $$;
 
+-- Function to update a single player's points atomically
+-- Ensures points don't drop below 0
+create or replace function update_player_points(p_id uuid, delta int)
+returns void
+language sql
+security definer
+as $$
+  update players
+  set points = greatest(points + delta, 0)
+  where id = p_id;
+$$;
+
+-- Function to update points for all players in a team atomically
+-- Ensures points don't drop below 0 for any player
+create or replace function update_team_points(t_id uuid, delta int)
+returns void
+language sql
+security definer
+as $$
+  update players
+  set points = greatest(points + delta, 0)
+  where team_id = t_id;
+$$;
+
 -- Run this command in your SQL editor to enable the unique constraint:
 -- alter table players add constraint players_name_key unique (name);
 

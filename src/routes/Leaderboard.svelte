@@ -87,7 +87,7 @@
       <div class="players-view">
         <!-- QR Code Section -->
         <div class="qr-display">
-          <QRCodeSection {qrCode} {joinUrl} compact={true} />
+          <QRCodeSection {qrCode} {joinUrl} />
         </div>
 
         <!-- Teams or Players List -->

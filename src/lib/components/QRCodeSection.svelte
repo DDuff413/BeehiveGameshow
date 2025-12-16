@@ -1,14 +1,13 @@
 <script lang="ts">
   export let qrCode: string;
   export let joinUrl: string;
-  export let compact: boolean = false;
 </script>
 
-<div class="qr-section" class:compact>
+<div class="qr-section">
   <h2>Player Join</h2>
-  <div id="qrCodeContainer" class:compact>
+  <div class="qr-code-container">
     {#if qrCode}
-      <img id="qrCode" src={qrCode} alt="QR Code" />
+      <img class="qr-code" src={qrCode} alt="QR Code" />
     {/if}
   </div>
   <p class="join-url">Scan to join or visit: <span>{joinUrl}</span></p>
@@ -19,12 +18,7 @@
     text-align: center;
   }
 
-  .qr-section.compact h2 {
-    font-size: 1.2rem;
-    margin-bottom: 15px;
-  }
-
-  #qrCodeContainer {
+  .qr-code-container {
     background: white;
     padding: 20px;
     border-radius: 8px;
@@ -32,19 +26,10 @@
     display: inline-block;
   }
 
-  #qrCodeContainer.compact {
-    padding: 12px;
-    margin: 15px 0;
-  }
-
-  #qrCode {
+  .qr-code {
     max-width: 256px;
     width: 100%;
     height: auto;
-  }
-
-  .compact #qrCode {
-    max-width: 220px;
   }
 
   .join-url {

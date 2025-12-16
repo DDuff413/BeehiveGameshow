@@ -10,6 +10,7 @@ create table players (
   id uuid default gen_random_uuid() primary key,
   name text not null unique,
   team_id uuid references teams(id) on delete set null,
+  points int default 0,
   joined_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -74,3 +75,6 @@ $$;
 
 -- Run this command in your SQL editor to enable the unique constraint:
 -- alter table players add constraint players_name_key unique (name);
+
+-- Run this command to add the points column:
+-- alter table players add column points int default 0;

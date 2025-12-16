@@ -110,7 +110,7 @@
         // Wait for realtime to update the teams store
         const waitForTeams = new Promise<void>((resolve, reject) => {
           let unsubscribe: (() => void) | undefined;
-          
+
           const timeout = setTimeout(() => {
             unsubscribe?.();
             reject(new Error("Timeout waiting for teams to be created"));
@@ -174,17 +174,15 @@
     isActionPending = true;
     try {
       // Prepare updates
-      const updates = Object.entries(manualAssignments).map(
-        ([id, team_id]) => {
-          // Find original player to keep name
-          const original = players.find((p) => p.id === id);
-          return {
-            id,
-            team_id: team_id || null,
-            name: original?.name || "Unknown",
-          };
-        }
-      );
+      const updates = Object.entries(manualAssignments).map(([id, team_id]) => {
+        // Find original player to keep name
+        const original = players.find((p) => p.id === id);
+        return {
+          id,
+          team_id: team_id || null,
+          name: original?.name || "Unknown",
+        };
+      });
 
       const { error } = await supabase.from("players").upsert(updates);
       if (error) throw error;
@@ -218,7 +216,11 @@
   }
 
   async function handleResetTeams() {
-    if (!confirm("Are you sure you want to delete all teams? Players will be unassigned.")) {
+    if (
+      !confirm(
+        "Are you sure you want to delete all teams? Players will be unassigned."
+      )
+    ) {
       return;
     }
     operationError = "";
@@ -226,7 +228,10 @@
 
     try {
       // Delete all teams (using 'not null' filter is more explicit than UUID workaround)
-      const { error } = await supabase.from("teams").delete().not("id", "is", null);
+      const { error } = await supabase
+        .from("teams")
+        .delete()
+        .not("id", "is", null);
       if (error) throw error;
     } catch (error: any) {
       console.error("Reset teams failed:", error);
@@ -245,7 +250,10 @@
 
     try {
       // Delete all players (using 'not null' filter is more explicit than UUID workaround)
-      const { error } = await supabase.from("players").delete().not("id", "is", null);
+      const { error } = await supabase
+        .from("players")
+        .delete()
+        .not("id", "is", null);
       if (error) throw error;
     } catch (error: any) {
       console.error("Reset players failed:", error);
@@ -264,7 +272,7 @@
     <div class="error-banner">
       <span class="error-icon">⚠️</span>
       <span>{operationError}</span>
-      <button class="error-close" onclick={() => (operationError = "")}>
+      <button class="error-close" on:click={() => (operationError = "")}>
         ×
       </button>
     </div>
@@ -290,7 +298,7 @@
         id="createTeamBtn"
         class="btn btn-success"
         disabled={isActionPending || !!teamNameError}
-        onclick={handleCreateTeam}
+        on:click={handleCreateTeam}
       >
         {#if isActionPending}
           <span class="spinner"></span>
@@ -307,7 +315,7 @@
         id="shuffleBtn"
         class="btn btn-primary"
         disabled={!hasPlayers || isActionPending}
-        onclick={handleShuffle}
+        on:click={handleShuffle}
       >
         {#if isActionPending}
           <span class="spinner"></span>
@@ -328,7 +336,7 @@
         id="manualAssignBtn"
         class="btn btn-secondary"
         disabled={!hasPlayers || isActionPending || !hasTeams}
-        onclick={showManualAssignment}
+        on:click={showManualAssignment}
       >
         ✋ Manual Assign
       </button>
@@ -340,7 +348,7 @@
         id="resetBtn"
         class="btn btn-danger"
         disabled={isActionPending}
-        onclick={handleReset}
+        on:click={handleReset}
       >
         {#if isActionPending}
           <span class="spinner"></span>
@@ -352,7 +360,7 @@
       <button
         class="btn btn-danger"
         disabled={isActionPending || !hasTeams}
-        onclick={handleResetTeams}
+        on:click={handleResetTeams}
       >
         {#if isActionPending}
           <span class="spinner"></span>
@@ -364,7 +372,7 @@
       <button
         class="btn btn-danger"
         disabled={isActionPending || !hasPlayers}
-        onclick={handleResetPlayers}
+        on:click={handleResetPlayers}
       >
         {#if isActionPending}
           <span class="spinner"></span>
@@ -398,7 +406,7 @@
               </select>
               <button
                 class="btn-small"
-                onclick={() => (manualAssignments[player.id] = null)}
+                on:click={() => (manualAssignments[player.id] = null)}
               >
                 Clear
               </button>
@@ -408,7 +416,7 @@
       </div>
       <button
         class="btn btn-success"
-        onclick={saveManualAssignments}
+        on:click={saveManualAssignments}
         disabled={isActionPending}
       >
         {#if isActionPending}
@@ -418,8 +426,10 @@
         {/if}
         Save Team Assignments
       </button>
-      <button class="btn" onclick={hideManualAssignment} disabled={isActionPending}
-        >Cancel</button
+      <button
+        class="btn"
+        on:click={hideManualAssignment}
+        disabled={isActionPending}>Cancel</button
       >
     </div>
   {/if}

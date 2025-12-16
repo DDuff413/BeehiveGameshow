@@ -19,18 +19,21 @@ export type Database = {
           id: string
           joined_at: string
           name: string
+          points: number | null
           team_id: string | null
         }
         Insert: {
           id?: string
           joined_at?: string
           name: string
+          points?: number | null
           team_id?: string | null
         }
         Update: {
           id?: string
           joined_at?: string
           name?: string
+          points?: number | null
           team_id?: string | null
         }
         Relationships: [

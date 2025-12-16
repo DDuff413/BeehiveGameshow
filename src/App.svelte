@@ -2,14 +2,12 @@
   import { onMount } from "svelte";
   import Host from "./routes/Host.svelte";
   import Join from "./routes/Join.svelte";
-
-  let currentPath = $state(window.location.pathname);
+  import Player from "./routes/Player.svelte";
+  import { currentRoute, navigate, initRouter } from "./lib/router";
 
   onMount(() => {
-    const handlePopState = () => {
-      currentPath = window.location.pathname;
-    };
-
+    // Initialize router listener
+    const cleanupRouter = initRouter();
     const handleLinkClick = (event: MouseEvent) => {
       // Only handle left-clicks without modifier keys
       if (
@@ -34,23 +32,23 @@
       // Prevent default navigation
       event.preventDefault();
 
-      // Update history and currentPath
-      history.pushState({}, "", href);
-      currentPath = href;
+      // Use centralized router
+      navigate(href);
     };
 
-    window.addEventListener("popstate", handlePopState);
     document.addEventListener("click", handleLinkClick);
 
     return () => {
-      window.removeEventListener("popstate", handlePopState);
       document.removeEventListener("click", handleLinkClick);
+      cleanupRouter();
     };
   });
 </script>
 
-{#if currentPath === "/join"}
+{#if $currentRoute === "/join"}
   <Join />
+{:else if $currentRoute === "/player"}
+  <Player />
 {:else}
   <Host />
 {/if}

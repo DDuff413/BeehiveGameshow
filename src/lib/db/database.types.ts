@@ -70,6 +70,14 @@ export type Database = {
     }
     Functions: {
       reset_game: { Args: never; Returns: undefined }
+      update_player_points: {
+        Args: { delta: number; p_id: string }
+        Returns: undefined
+      }
+      update_team_points: {
+        Args: { delta: number; t_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

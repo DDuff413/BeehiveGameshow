@@ -88,8 +88,8 @@
 
 <div class="container">
   {#if isLoading}
-    <div class="loading-container">
-      <div class="loading-spinner-large"></div>
+    <div class="loading-container" aria-live="polite" aria-busy="true">
+      <div class="loading-spinner-large" role="status" aria-label="Loading"></div>
       <p>Loading your dashboard...</p>
     </div>
   {:else if currentPlayer}

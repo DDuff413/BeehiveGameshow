@@ -34,7 +34,7 @@
 </script>
 
 {#if variant === "leaderboard"}
-  <div class="leaderboard-row">
+  <div class="leaderboard-row" class:with-rank={showRank && rank !== null}>
     {#if showRank && rank !== null}
       <div class="rank-badge">#{rank}</div>
     {/if}
@@ -110,7 +110,7 @@
   /* Leaderboard variant */
   .leaderboard-row {
     display: grid;
-    grid-template-columns: 50px 1fr 2fr;
+    grid-template-columns: 1fr 2fr;
     gap: 12px;
     align-items: center;
     margin-bottom: 8px;
@@ -119,6 +119,10 @@
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .leaderboard-row.with-rank {
+    grid-template-columns: 50px 1fr 2fr;
   }
 
   .leaderboard-row:hover {

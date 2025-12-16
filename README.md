@@ -11,7 +11,14 @@ A real-time web application built with **Svelte** and **Supabase** for hosting i
   - **Random Shuffle**: Automatically distribute players into existing teams
   - **Manual Assignment**: Manually assign players to specific teams
   - **Team Card Interface**: Edit team names, add/remove players with drag-free controls
-- **Persistent Data**: Players and teams are saved to a PostgreSQL database (Supabase)
+- **Points System**:
+  - **Individual Points**: Award or deduct points for individual players
+  - **Team Points**: Award or deduct points for entire teams at once
+  - **Real-time Updates**: Points update instantly on player dashboards
+  - **Non-negative Constraint**: Points cannot drop below 0
+  - **Atomic Operations**: Database-level RPC functions ensure data consistency
+- **Player Dashboard**: Players can view their current points and team assignment in real-time
+- **Persistent Data**: Players, teams, and points are saved to a PostgreSQL database (Supabase)
 - **Responsive Design**: Mobile-friendly interface for both hosts and players
 
 ## Technology Stack
@@ -95,7 +102,14 @@ This application is a **Static Site** (SPA). You can deploy the `dist/` folder t
    - **Random Shuffle**: Enter team size and click "🎲 Random Shuffle" to distribute players
    - **Manual Assign**: Click "✋ Manual Assign" to manually select teams for each player
    - **Team Card**: Add/remove players directly in each team's edit mode
-6. **Reset**: Use the "🔄 Reset All" button to clear all players from the database.
+6. **Host** manages points:
+   - **Individual Points**: Use `+`/`-` buttons next to each player in team cards
+   - **Team Points**: Use `+`/`-` buttons in the team card footer to award/deduct points for all team members
+   - Points update in real-time on player dashboards
+7. **Players** view their dashboard:
+   - Navigate to `/player` to see current points and team assignment
+   - Points update automatically as the host makes changes
+8. **Reset**: Use the "🔄 Reset All" button to clear all players and teams from the database.
 
 ## Project Structure
 
@@ -103,17 +117,20 @@ This application is a **Static Site** (SPA). You can deploy the `dist/` folder t
 BeehiveGameshow/
 ├── src/                    # Frontend source (Svelte + TypeScript)
 │   ├── routes/            # Page components
-│   │   ├── Host.svelte   # Host dashboard
-│   │   └── Join.svelte   # Player join page
+│   │   ├── Host.svelte    # Host dashboard
+│   │   ├── Join.svelte    # Player join page
+│   │   └── Player.svelte  # Player dashboard (points & team view)
 │   ├── lib/              # Shared utilities
 │   │   ├── db/           # Database interactions
-│   │   │   ├── supabase.ts       # Supabase client initialization
-│   │   │   ├── store.ts          # State management (Supabase Realtime)
-│   │   │   ├── teamOperations.ts # Team CRUD operations
-│   │   │   └── playerOperations.ts # Player CRUD operations
+│   │   │   ├── supabase.ts         # Supabase client initialization
+│   │   │   ├── store.ts            # State management (Supabase Realtime)
+│   │   │   ├── teamOperations.ts   # Team CRUD operations
+│   │   │   ├── playerOperations.ts # Player CRUD operations
+│   │   │   └── pointsOperations.ts # Points update operations (RPC calls)
 │   │   ├── components/   # Svelte components
 │   │   │   ├── ConnectionBanner.svelte # Connection status UI
-│   │   │   └── TeamCard.svelte         # Team display/edit
+│   │   │   ├── PlayersList.svelte      # All players list
+│   │   │   └── TeamCard.svelte         # Team display/edit with points controls
 │   │   └── types.ts      # TypeScript interfaces
 │   ├── App.svelte        # Main app with routing
 │   ├── app.css           # Global styles

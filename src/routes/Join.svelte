@@ -145,17 +145,24 @@
   /**
    * Wait for a player to appear in the reactive store
    * Uses a Promise that resolves when the player is found or times out
+   * 
+   * Cleanup behavior:
+   * - If player already exists: Early return, no subscription created (no cleanup needed)
+   * - If player found via subscription: Clears timeout and unsubscribes immediately
+   * - If timeout fires: Unsubscribes and proceeds anyway
+   * - Component onDestroy: Cleans up any remaining subscription as fallback
    */
   function waitForPlayerInStore(playerId: string): Promise<void> {
     return new Promise((resolve) => {
-      // Check if player already exists
+      // Check if player already exists - early return path
+      // No subscription is created, so no cleanup is needed
       const currentPlayers = get(players);
       if (currentPlayers.find((p: Player) => p.id === playerId)) {
         resolve();
         return;
       }
 
-      // Set up timeout
+      // Set up timeout - will clean up subscription if it fires
       const timeoutId = setTimeout(() => {
         if (unsubscribe) {
           unsubscribe();
@@ -165,7 +172,7 @@
         resolve();
       }, JOIN_SYNC_TIMEOUT);
 
-      // Subscribe to store changes
+      // Subscribe to store changes - will clean up on success
       unsubscribe = players.subscribe(($players) => {
         const exists = $players.find((p: Player) => p.id === playerId);
         if (exists) {

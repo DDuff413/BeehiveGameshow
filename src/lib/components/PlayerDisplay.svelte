@@ -12,6 +12,7 @@
   export let teamName: string = "";
   export let rank: number | null = null;
   export let maxPoints: number = 0;
+  export let disabled: boolean = false;
   export let onDelete: ((id: string) => void) | null = null;
 
   let pointsError = "";
@@ -87,6 +88,7 @@
       <button
         class="delete-btn"
         on:click={() => onDelete?.(player.id)}
+        {disabled}
         aria-label="Remove {player.name}"
         title="Remove Player"
       >
@@ -323,6 +325,17 @@
     opacity: 1;
     background-color: rgba(255, 0, 0, 0.1);
     transform: scale(1.1);
+  }
+
+  .delete-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: none;
+  }
+
+  .delete-btn:disabled:hover {
+    transform: none;
+    background: none;
   }
 
   /* Simple variant */

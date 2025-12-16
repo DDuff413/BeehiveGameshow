@@ -46,6 +46,7 @@
           showDelete={true}
           showTeam={true}
           teamName={playerTeam?.name ?? ""}
+          disabled={isActionPending}
           onDelete={(id) => handleRemove(id, player.name)}
         />
       {/each}

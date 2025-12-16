@@ -39,43 +39,19 @@
       <p class="empty-state">No players yet. Scan the QR code to join!</p>
     {:else}
       {#each players as player (player.id)}
-        <div class="player-wrapper {player.team_id ? 'assigned' : ''}">
-          <PlayerDisplay 
-            {player} 
-            variant="grid" 
-            showDelete={true} 
-            onDelete={(id) => handleRemove(id, player.name)}
-          />
-          {#if player.team_id}
-            {@const playerTeam = teams.find((t) => t.id === player.team_id)}
-            {#if playerTeam}
-              <span class="team-badge">{playerTeam.name}</span>
-            {/if}
-          {/if}
-        </div>
+        {@const playerTeam = player.team_id ? teams.find((t) => t.id === player.team_id) : null}
+        <PlayerDisplay 
+          {player} 
+          variant="grid" 
+          showDelete={true}
+          showTeam={true}
+          teamName={playerTeam?.name ?? ""}
+          onDelete={(id) => handleRemove(id, player.name)}
+        />
       {/each}
     {/if}
   </div>
 </div>
 
 <style>
-  .player-wrapper {
-    position: relative;
-  }
-
-  .player-wrapper.assigned {
-    border-color: var(--success-color);
-  }
-
-  .team-badge {
-    position: absolute;
-    top: 8px;
-    right: 48px;
-    display: inline-block;
-    background: var(--success-color);
-    color: white;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-  }
 </style>

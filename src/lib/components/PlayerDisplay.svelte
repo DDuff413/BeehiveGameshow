@@ -8,6 +8,8 @@
   export let showRank: boolean = false;
   export let showDelete: boolean = false;
   export let showPointControls: boolean = false;
+  export let showTeam: boolean = false;
+  export let teamName: string = "";
   export let rank: number | null = null;
   export let maxPoints: number = 0;
   export let onDelete: ((id: string) => void) | null = null;
@@ -48,35 +50,35 @@
 {:else if variant === "team"}
   <div class="team-member-display">
     <span class="team-member-name">{player.name}</span>
-    {#if showPoints}
-      <span class="team-member-points">{player.points ?? 0} pts</span>
-    {/if}
-    {#if showPointControls}
-      <div class="point-controls">
+    {#if showPoints && showPointControls}
+      <div class="member-controls">
         <button
-          class="point-btn point-btn-add"
+          class="btn-point small minus"
+          on:click={() => adjustPoints(-1)}
+          disabled={(player.points ?? 0) <= 0}
+          aria-label="Subtract 1 point from {player.name}"
+        >-</button>
+        <span class="member-points">{player.points ?? 0}</span>
+        <button
+          class="btn-point small plus"
           on:click={() => adjustPoints(1)}
           aria-label="Add 1 point to {player.name}"
-        >
-          +1
-        </button>
-        <button
-          class="point-btn point-btn-subtract"
-          on:click={() => adjustPoints(-1)}
-          aria-label="Subtract 1 point from {player.name}"
-        >
-          -1
-        </button>
+        >+</button>
       </div>
+    {:else if showPoints}
+      <span class="team-member-points">{player.points ?? 0} pts</span>
     {/if}
     {#if pointsError}
       <span class="points-error">{pointsError}</span>
     {/if}
   </div>
 {:else if variant === "grid"}
-  <div class="player-card-grid">
+  <div class="player-card-grid" class:team-assigned={showTeam && teamName}>
     <div class="player-grid-info">
       <span class="player-name">{player.name}</span>
+      {#if showTeam && teamName}
+        <span class="player-team-name">{teamName}</span>
+      {/if}
       {#if showPoints}
         <span class="player-points">{player.points ?? 0} pts</span>
       {/if}
@@ -180,15 +182,16 @@
 
   /* Team variant */
   .team-member-display {
-    padding: 10px;
+    padding: 10px 12px;
     margin-bottom: 8px;
-    background: white;
+    background: var(--bg-color);
     border-radius: 6px;
     border-left: 4px solid var(--primary-color);
     display: flex;
     align-items: center;
     gap: 10px;
-    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .team-member-display:last-child {
@@ -198,46 +201,69 @@
   .team-member-name {
     font-weight: 500;
     flex: 1;
-    min-width: 100px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .team-member-points {
     font-weight: 600;
     color: var(--primary-color);
-    margin-left: auto;
+    font-size: 1rem;
+    min-width: 40px;
+    text-align: center;
   }
 
-  .point-controls {
+  .member-controls {
     display: flex;
-    gap: 6px;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
   }
 
-  .point-btn {
-    padding: 4px 10px;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.85rem;
+  .member-points {
     font-weight: 600;
+    color: var(--text-color);
+    min-width: 30px;
+    text-align: center;
+  }
+
+  .btn-point.small {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    font-size: 1rem;
+    font-weight: bold;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.2s;
   }
 
-  .point-btn-add {
-    background: var(--success-color);
-    color: white;
+  .btn-point.small.plus {
+    background: #e8f5e9;
+    color: #2e7d32;
   }
 
-  .point-btn-add:hover {
-    background: #45a049;
+  .btn-point.small.minus {
+    background: #ffebee;
+    color: #c62828;
   }
 
-  .point-btn-subtract {
-    background: var(--danger-color);
-    color: white;
+  .btn-point.small:hover:not(:disabled) {
+    transform: scale(1.1);
+    filter: brightness(0.95);
   }
 
-  .point-btn-subtract:hover {
-    background: #da190b;
+  .btn-point.small:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: #eee;
+    color: #999;
   }
 
   .points-error {
@@ -259,8 +285,19 @@
     align-items: center;
   }
 
+  .player-card-grid.team-assigned {
+    border-left-color: var(--success-color);
+    background: rgba(76, 175, 80, 0.1);
+  }
+
   .player-card-grid:hover {
     transform: translateX(5px);
+  }
+
+  .player-team-name {
+    font-size: 0.85rem;
+    color: var(--success-color);
+    font-weight: 600;
   }
 
   .player-grid-info {
@@ -291,7 +328,7 @@
   /* Simple variant */
   .player-simple {
     padding: 10px;
-    background: white;
+    background: var(--bg-color);
     border-radius: 6px;
     border-left: 3px solid var(--primary-color);
     display: flex;

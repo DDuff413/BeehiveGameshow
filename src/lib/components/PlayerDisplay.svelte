@@ -186,6 +186,45 @@
     box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.3);
   }
 
+  /* Responsive styles for leaderboard variant */
+  @media (max-width: 600px) {
+    .leaderboard-row {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 10px 12px;
+    }
+
+    .leaderboard-row.with-rank {
+      grid-template-columns: 40px 1fr;
+    }
+
+    .rank-badge {
+      width: 32px;
+      height: 32px;
+      font-size: 0.95rem;
+    }
+
+    .player-info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .player-name-leaderboard {
+      font-size: 1rem;
+    }
+
+    .points-badge {
+      font-size: 0.8rem;
+      padding: 3px 8px;
+    }
+
+    .progress-container {
+      height: 18px;
+      grid-column: 1 / -1;
+    }
+  }
+
   /* Team variant */
   .team-member-display {
     padding: 10px 12px;

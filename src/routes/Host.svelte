@@ -11,6 +11,7 @@
   import QRCodeSection from "../lib/components/QRCodeSection.svelte";
   import PlayersList from "../lib/components/PlayersList.svelte";
   import TeamControls from "../lib/components/TeamControls.svelte";
+  import PageHeader from "../lib/components/PageHeader.svelte";
   import QRCode from "qrcode";
 
   let qrCode = "";
@@ -39,16 +40,16 @@
 <ConnectionBanner />
 
 <div class="container">
-  <header>
-    <h1><img src="/beehive-icon.png" alt="Beehive" class="title-icon" />Gameshow of Totally Reasonable and Normal Games<img src="/beehive-icon.png" alt="Beehive" class="title-icon" /></h1>
-    <p class="subtitle">Host Dashboard</p>
+  <PageHeader subtitle="Host Dashboard" />
+  
+  <div style="text-align: center; margin-bottom: 20px;">
     <button 
       class="btn btn-secondary open-leaderboard-btn"
       on:click={() => window.open('/leaderboard', '_blank')}
     >
       📊 Open Leaderboard Display
     </button>
-  </header>
+  </div>
 
   {#if isLoading}
     <div class="loading-container" aria-live="polite" aria-busy="true">

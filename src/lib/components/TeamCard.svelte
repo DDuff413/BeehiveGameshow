@@ -4,6 +4,7 @@
   import { updateTeamPoints, updatePlayerPoints } from "../db/pointsOperations";
   import { players } from "../db/store";
   import ErrorBanner from "./ErrorBanner.svelte";
+  import PlayerDisplay from "./PlayerDisplay.svelte";
 
   export let team: Team;
 
@@ -121,19 +122,6 @@
       errorMessage = `Failed to update team points: ${error.message || "Unknown error"}`;
     }
   }
-
-  async function handlePlayerPoints(playerId: string, delta: number) {
-    errorMessage = "";
-    try {
-      const result = await updatePlayerPoints(playerId, delta);
-      if (!result.success) {
-        errorMessage = `Failed to update player points: ${result.error}`;
-      }
-    } catch (error: any) {
-      console.error("Player points update failed:", error);
-      errorMessage = `Failed to update player points: ${error.message || "Unknown error"}`;
-    }
-  }
 </script>
 
 <div class="team-card">
@@ -157,21 +145,12 @@
         <p class="empty-state">No players assigned</p>
       {:else}
         {#each teamPlayers as player (player.id)}
-          <div class="team-member">
-            <span class="member-name">{player.name}</span>
-            <div class="member-controls">
-              <button
-                class="btn-point small minus"
-                on:click={() => handlePlayerPoints(player.id, -1)}
-                disabled={(player.points ?? 0) <= 0}>-</button
-              >
-              <span class="member-points">{player.points ?? 0}</span>
-              <button
-                class="btn-point small plus"
-                on:click={() => handlePlayerPoints(player.id, 1)}>+</button
-              >
-            </div>
-          </div>
+          <PlayerDisplay 
+            {player} 
+            variant="team" 
+            showPoints={true} 
+            showPointControls={true}
+          />
         {/each}
       {/if}
     </div>
@@ -326,28 +305,6 @@
     gap: 0.5rem;
   }
 
-  .team-member {
-    padding: 0.5rem;
-    background: #f0f0f0;
-    border-radius: 4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .member-controls {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .member-points {
-    font-size: 0.9rem;
-    font-weight: bold;
-    min-width: 1.2rem;
-    text-align: center;
-  }
-
   .team-footer {
     margin-top: 1rem;
     padding-top: 0.5rem;
@@ -380,12 +337,6 @@
     font-weight: bold;
     transition: all 0.2s;
     padding: 0;
-  }
-
-  .btn-point.small {
-    width: 20px;
-    height: 20px;
-    font-size: 0.8rem;
   }
 
   .btn-point.minus {

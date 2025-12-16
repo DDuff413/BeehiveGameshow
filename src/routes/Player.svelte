@@ -9,6 +9,7 @@
   import { removePlayer } from "../lib/db/playerOperations";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
   import ErrorBanner from "../lib/components/ErrorBanner.svelte";
+  import PageHeader from "../lib/components/PageHeader.svelte";
   import type { Player, Team } from "../lib/types";
   import { navigate } from "../lib/router";
 
@@ -101,10 +102,7 @@
       </a>
     </nav>
 
-    <header>
-      <h1><img src="/beehive-icon.png" alt="Beehive" class="title-icon" />Gameshow of Totally Reasonable and Normal Games<img src="/beehive-icon.png" alt="Beehive" class="title-icon" /></h1>
-      <p class="subtitle">Player Dashboard</p>
-    </header>
+    <PageHeader subtitle="Player Dashboard" />
 
     <div class="main-content player-dashboard">
       <ErrorBanner message={errorMessage} autoDismiss={true} onDismiss={() => (errorMessage = "")} />

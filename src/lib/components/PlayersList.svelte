@@ -2,6 +2,7 @@
   import type { Player, Team } from "../types";
   import { removePlayer } from "../db/playerOperations";
   import ErrorBanner from "./ErrorBanner.svelte";
+  import PlayerDisplay from "./PlayerDisplay.svelte";
 
   export let players: Player[];
   export let teams: Team[];
@@ -38,22 +39,19 @@
       <p class="empty-state">No players yet. Scan the QR code to join!</p>
     {:else}
       {#each players as player (player.id)}
-        <div class="player-card {player.team_id ? 'assigned' : ''}">
-          <div class="player-info">
-            <span class="player-name">{player.name}</span>
-            {#if player.team_id}
-              {@const playerTeam = teams.find((t) => t.id === player.team_id)}
-              <span class="team-badge">{playerTeam?.name || "Team"}</span>
+        <div class="player-wrapper {player.team_id ? 'assigned' : ''}">
+          <PlayerDisplay 
+            {player} 
+            variant="grid" 
+            showDelete={true} 
+            onDelete={(id) => handleRemove(id, player.name)}
+          />
+          {#if player.team_id}
+            {@const playerTeam = teams.find((t) => t.id === player.team_id)}
+            {#if playerTeam}
+              <span class="team-badge">{playerTeam.name}</span>
             {/if}
-          </div>
-          <button
-            class="btn-icon delete-btn"
-            title="Remove Player"
-            disabled={isActionPending}
-            on:click={() => handleRemove(player.id, player.name)}
-          >
-            🗑️
-          </button>
+          {/if}
         </div>
       {/each}
     {/if}
@@ -61,44 +59,23 @@
 </div>
 
 <style>
-  .player-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  .player-wrapper {
+    position: relative;
   }
 
-  .player-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+  .player-wrapper.assigned {
+    border-color: var(--success-color);
   }
 
-  /* Override global style to remove bottom margin inside this flex layout if needed */
-  :global(.player-name) {
-    margin-bottom: 2px;
-  }
-
-  .delete-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.2rem;
-    padding: 8px;
-    opacity: 0.7;
-    transition:
-      opacity 0.2s,
-      transform 0.2s;
-    border-radius: 50%;
-  }
-
-  .delete-btn:hover:not(:disabled) {
-    opacity: 1;
-    background-color: rgba(255, 0, 0, 0.1);
-    transform: scale(1.1);
-  }
-
-  .delete-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
+  .team-badge {
+    position: absolute;
+    top: 8px;
+    right: 48px;
+    display: inline-block;
+    background: var(--success-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
   }
 </style>

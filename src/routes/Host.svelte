@@ -40,7 +40,7 @@
 
 <div class="container">
   <header>
-    <h1>🐝 Beehive Gameshow</h1>
+    <h1>🐝 Gameshow of Totally Reasonable and Normal Games</h1>
     <p class="subtitle">Host Dashboard</p>
   </header>
 

@@ -14,6 +14,7 @@ export const MAX_RETRY_ATTEMPTS = 5;
 export const INITIAL_RETRY_DELAY = 2000; // 2 seconds
 export const MAX_RETRY_DELAY = 32000; // 32 seconds
 export const TEAM_CREATION_TIMEOUT = 5000; // 5 seconds
+export const JOIN_SYNC_TIMEOUT = 8000; // 8 seconds - wait for player to sync in store
 
 // Database
 export const PLAYERS_TABLE = "players";

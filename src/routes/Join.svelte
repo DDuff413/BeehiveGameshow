@@ -1,12 +1,13 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { supabase } from "../lib/db/supabase";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
   import ErrorBanner from "../lib/components/ErrorBanner.svelte";
   import { initializeStores, players, connectionStatus } from "../lib/db/store";
-  import { MAX_NAME_LENGTH } from "../lib/constants";
+  import { MAX_NAME_LENGTH, JOIN_SYNC_TIMEOUT } from "../lib/constants";
   import { navigate } from "../lib/router";
   import type { Player } from "../lib/types";
+  import { get } from "svelte/store";
 
   let isLoading = true;
 
@@ -52,6 +53,15 @@
   let isJoined = false;
   let joinedName = "";
   let isSubmitting = false;
+  let unsubscribe: (() => void) | null = null;
+
+  // Cleanup on component destroy
+  onDestroy(() => {
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+  });
 
   // Validation function
   function validatePlayerName(name: string): string {
@@ -112,20 +122,11 @@
         localStorage.setItem("beehive_player_id", data.id);
 
         // Wait for the player to appear in the store (Realtime sync)
-        // This prevents a race condition where we redirect before the store knows about us
-        const checkStore = setInterval(() => {
-          const exists = $players.find((p: Player) => p.id === data.id);
-          if (exists) {
-            clearInterval(checkStore);
-            navigate("/player");
-          }
-        }, 100);
-
-        // Safety timeout (5s) to force redirect if realtime fails
-        setTimeout(() => {
-          clearInterval(checkStore);
-          navigate("/player");
-        }, 5000);
+        // Use a Promise-based approach instead of polling
+        await waitForPlayerInStore(data.id);
+        
+        // Navigate to player dashboard
+        navigate("/player");
       }
     } catch (error: any) {
       console.error("Error joining game:", error);
@@ -139,6 +140,44 @@
     } finally {
       isSubmitting = false;
     }
+  }
+
+  /**
+   * Wait for a player to appear in the reactive store
+   * Uses a Promise that resolves when the player is found or times out
+   */
+  function waitForPlayerInStore(playerId: string): Promise<void> {
+    return new Promise((resolve) => {
+      // Check if player already exists
+      const currentPlayers = get(players);
+      if (currentPlayers.find((p: Player) => p.id === playerId)) {
+        resolve();
+        return;
+      }
+
+      // Set up timeout
+      const timeoutId = setTimeout(() => {
+        if (unsubscribe) {
+          unsubscribe();
+          unsubscribe = null;
+        }
+        console.warn(`Player sync timed out after ${JOIN_SYNC_TIMEOUT}ms, proceeding anyway`);
+        resolve();
+      }, JOIN_SYNC_TIMEOUT);
+
+      // Subscribe to store changes
+      unsubscribe = players.subscribe(($players) => {
+        const exists = $players.find((p: Player) => p.id === playerId);
+        if (exists) {
+          clearTimeout(timeoutId);
+          if (unsubscribe) {
+            unsubscribe();
+            unsubscribe = null;
+          }
+          resolve();
+        }
+      });
+    });
   }
 
   function handleKeyPress(event: KeyboardEvent) {

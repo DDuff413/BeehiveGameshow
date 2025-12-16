@@ -8,6 +8,7 @@
   } from "../lib/db/store";
   import { removePlayer } from "../lib/db/playerOperations";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
+  import ErrorBanner from "../lib/components/ErrorBanner.svelte";
   import type { Player, Team } from "../lib/types";
   import { navigate } from "../lib/router";
 
@@ -17,6 +18,7 @@
   let teammates: Player[] = [];
   let isActionPending = false;
   let showTeammates = false;
+  let errorMessage = "";
 
   onMount(async () => {
     // 1. Initialize Stores
@@ -61,6 +63,7 @@
     if (!confirm("Are you sure you want to leave the game?")) return;
     if (!currentPlayer) return;
 
+    errorMessage = "";
     isActionPending = true;
     try {
       const result = await removePlayer(currentPlayer.id);
@@ -71,7 +74,7 @@
       navigate("/join");
     } catch (error: any) {
       console.error("Leave game failed:", error);
-      alert("Failed to leave game: " + error.message);
+      errorMessage = `Failed to leave game: ${error.message || "Unknown error"}. Please try again.`;
     } finally {
       isActionPending = false;
     }
@@ -88,6 +91,8 @@
     </header>
 
     <div class="main-content player-dashboard">
+      <ErrorBanner message={errorMessage} autoDismiss={true} onDismiss={() => (errorMessage = "")} />
+      
       <!-- Player Info -->
       <div class="player-header-card">
         <h2>{currentPlayer.name}</h2>

@@ -1,24 +1,27 @@
 <script lang="ts">
   import type { Player, Team } from "../types";
   import { removePlayer } from "../db/playerOperations";
+  import ErrorBanner from "./ErrorBanner.svelte";
 
   export let players: Player[];
   export let teams: Team[];
 
   let isActionPending = false;
+  let errorMessage = "";
 
   async function handleRemove(id: string, name: string) {
     if (!confirm(`Are you sure you want to remove ${name}?`)) return;
 
+    errorMessage = "";
     isActionPending = true;
     try {
       const result = await removePlayer(id);
       if (!result.success) {
-        alert("Failed to remove player: " + result.error);
+        errorMessage = `Failed to remove ${name}: ${result.error}`;
       }
     } catch (e: any) {
-      console.error(e);
-      alert("Error removing player: " + (e?.message || String(e)));
+      console.error("Player removal failed:", e);
+      errorMessage = `Failed to remove ${name}: ${e?.message || "Unknown error"}. Please try again.`;
     } finally {
       isActionPending = false;
     }
@@ -27,6 +30,9 @@
 
 <div class="players-section">
   <h2>Players <span id="playerCount">({players.length})</span></h2>
+  
+  <ErrorBanner message={errorMessage} autoDismiss={true} onDismiss={() => (errorMessage = "")} />
+  
   <div id="playersList" class="players-list">
     {#if players.length === 0}
       <p class="empty-state">No players yet. Scan the QR code to join!</p>

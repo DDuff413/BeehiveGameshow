@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { supabase } from "../lib/db/supabase";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
+  import ErrorBanner from "../lib/components/ErrorBanner.svelte";
   import { initializeStores, players, connectionStatus } from "../lib/db/store";
   import { MAX_NAME_LENGTH } from "../lib/constants";
   import { navigate } from "../lib/router";
@@ -127,8 +128,10 @@
       console.error("Error joining game:", error);
       if (error.code === "23505") {
         errorMessage = "This name is already taken. Please choose another.";
+      } else if (error.message) {
+        errorMessage = `Failed to join game: ${error.message}. Please try again.`;
       } else {
-        errorMessage = `Failed to join: ${error.message || "Unknown error"}`;
+        errorMessage = "Failed to join game. Please check your connection and try again.";
       }
     } finally {
       isSubmitting = false;
@@ -154,6 +157,9 @@
     {#if !isJoined}
       <div id="joinForm" class="join-form">
         <h2>Enter Your Name</h2>
+        
+        <ErrorBanner message={errorMessage} onDismiss={() => (errorMessage = "")} />
+        
         <div class="input-wrapper">
           <input
             type="text"
@@ -181,9 +187,6 @@
             Join Game
           {/if}
         </button>
-        {#if errorMessage}
-          <p id="errorMessage" class="error-message">{errorMessage}</p>
-        {/if}
       </div>
     {:else}
       <div id="successMessage" class="success-message">

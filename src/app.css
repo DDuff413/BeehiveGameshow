@@ -414,12 +414,6 @@ input:focus {
   font-size: 1.1rem;
 }
 
-.error-message {
-  color: var(--danger-color);
-  margin-top: 15px;
-  font-weight: 500;
-}
-
 .success-message {
   text-align: center;
 }
@@ -498,36 +492,12 @@ input:focus {
   }
 }
 
-/* Error Banner */
-.error-banner {
-  background: #fee;
-  border: 1px solid #fcc;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #c33;
+/* Legacy error message styling for Join.svelte inline errors */
+.error-message {
+  color: var(--danger-color);
+  margin-top: 15px;
   font-weight: 500;
-  animation: slideDown 0.3s ease;
 }
-
-.error-icon {
-  font-size: 1.2em;
-  flex-shrink: 0;
-}
-
-.error-close {
-  margin-left: auto;
-  background: none;
-  border: none;
-  font-size: 1.5em;
-  color: #c33;
-  cursor: pointer;
-  padding: 0 8px;
-  line-height: 1;
-  transition: opacity 0.2s;
 }
 
 .error-close:hover {
@@ -553,16 +523,19 @@ input:focus {
 
 /* Validation Error */
 .input-wrapper {
-  position: relative;
-  display: inline-block;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-bottom: 8px;
 }
 
 .validation-error {
   display: block;
   color: var(--danger-color);
-  font-size: 0.85em;
-  margin-top: 4px;
+  font-size: 0.85rem;
+  margin-top: 6px;
+  margin-bottom: 8px;
   font-weight: 500;
-  position: absolute;
-  white-space: nowrap;
+  text-align: left;
+  line-height: 1.3;
 }

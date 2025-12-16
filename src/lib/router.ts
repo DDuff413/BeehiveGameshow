@@ -4,7 +4,12 @@ export const currentRoute = writable(window.location.pathname);
 
 export function navigate(path: string) {
   // Update history
-  window.history.pushState({}, "", path);
+  try {
+    window.history.pushState({}, "", path);
+  } catch (err) {
+    // Optionally log the error for debugging
+    console.error("Failed to update browser history with pushState:", err);
+  }
 
   // Update store
   currentRoute.set(path);

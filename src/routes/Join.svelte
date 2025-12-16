@@ -8,6 +8,7 @@
   import { navigate } from "../lib/router";
   import type { Player } from "../lib/types";
   import { get } from "svelte/store";
+  import PageHeader from "../lib/components/PageHeader.svelte";
 
   let isLoading = true;
 
@@ -197,10 +198,7 @@
 <ConnectionBanner />
 
 <div class="container join-container">
-  <header>
-    <h1><img src="/beehive-icon.png" alt="Beehive" class="title-icon" />Gameshow of Totally Reasonable and Normal Games<img src="/beehive-icon.png" alt="Beehive" class="title-icon" /></h1>
-    <p class="subtitle">Join the Game</p>
-  </header>
+  <PageHeader subtitle="Join the Game" />
 
   {#if isLoading}
     <div class="join-content">

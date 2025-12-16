@@ -4,6 +4,7 @@
   import { supabase } from "../db/supabase";
   import { teams } from "../db/store";
   import { get } from "svelte/store";
+  import ErrorBanner from "./ErrorBanner.svelte";
   import {
     DEFAULT_TEAM_SIZE,
     MIN_TEAM_SIZE,
@@ -60,10 +61,11 @@
         operationError = `Failed to create team: ${result.error}`;
       } else {
         newTeamName = ""; // Clear input on success
+        operationError = ""; // Clear any previous errors
       }
     } catch (error: any) {
       console.error("Create team failed:", error);
-      operationError = error.message || "Failed to create team";
+      operationError = `Failed to create team: ${error.message || "Unknown error"}. Please try again.`;
     } finally {
       isActionPending = false;
     }
@@ -151,7 +153,7 @@
       if (error) throw error;
     } catch (error: any) {
       console.error("Shuffle failed:", error);
-      operationError = error.message || "Failed to shuffle players into teams";
+      operationError = `Failed to shuffle players: ${error.message || "Unknown error"}. Please try again.`;
     } finally {
       isActionPending = false;
     }
@@ -190,7 +192,7 @@
       hideManualAssignment();
     } catch (error: any) {
       console.error("Manual assign failed:", error);
-      operationError = error.message || "Failed to save team assignments";
+      operationError = `Failed to save assignments: ${error.message || "Unknown error"}. Please try again.`;
     } finally {
       isActionPending = false;
     }
@@ -267,16 +269,7 @@
 <div class="team-management">
   <h2>Team Management</h2>
 
-  <!-- Error Message Display -->
-  {#if operationError}
-    <div class="error-banner">
-      <span class="error-icon">⚠️</span>
-      <span>{operationError}</span>
-      <button class="error-close" on:click={() => (operationError = "")}>
-        ×
-      </button>
-    </div>
-  {/if}
+  <ErrorBanner message={operationError} onDismiss={() => (operationError = "")} />
 
   <div class="team-controls">
     <!-- Row 1: Create Team -->

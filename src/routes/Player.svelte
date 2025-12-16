@@ -8,6 +8,7 @@
   } from "../lib/db/store";
   import { removePlayer } from "../lib/db/playerOperations";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
+  import ErrorBanner from "../lib/components/ErrorBanner.svelte";
   import type { Player, Team } from "../lib/types";
   import { navigate } from "../lib/router";
 
@@ -17,6 +18,8 @@
   let teammates: Player[] = [];
   let isActionPending = false;
   let showTeammates = false;
+  let errorMessage = "";
+  let isLoading = true;
 
   onMount(async () => {
     // 1. Initialize Stores
@@ -28,6 +31,8 @@
       navigate("/join");
       return;
     }
+    
+    isLoading = false;
   });
 
   // Reactive Logic
@@ -61,6 +66,7 @@
     if (!confirm("Are you sure you want to leave the game?")) return;
     if (!currentPlayer) return;
 
+    errorMessage = "";
     isActionPending = true;
     try {
       const result = await removePlayer(currentPlayer.id);
@@ -71,7 +77,7 @@
       navigate("/join");
     } catch (error: any) {
       console.error("Leave game failed:", error);
-      alert("Failed to leave game: " + error.message);
+      errorMessage = `Failed to leave game: ${error.message || "Unknown error"}. Please try again.`;
     } finally {
       isActionPending = false;
     }
@@ -81,13 +87,20 @@
 <ConnectionBanner />
 
 <div class="container">
-  {#if currentPlayer}
+  {#if isLoading}
+    <div class="loading-container" aria-live="polite" aria-busy="true">
+      <div class="loading-spinner-large" role="status" aria-label="Loading"></div>
+      <p>Loading your dashboard...</p>
+    </div>
+  {:else if currentPlayer}
     <header>
-      <h1>🐝 Beehive</h1>
+      <h1><img src="/beehive-icon.png" alt="Beehive" class="title-icon" />Gameshow of Totally Reasonable and Normal Games<img src="/beehive-icon.png" alt="Beehive" class="title-icon" /></h1>
       <p class="subtitle">Player Dashboard</p>
     </header>
 
     <div class="main-content player-dashboard">
+      <ErrorBanner message={errorMessage} autoDismiss={true} onDismiss={() => (errorMessage = "")} />
+      
       <!-- Player Info -->
       <div class="player-header-card">
         <h2>{currentPlayer.name}</h2>

@@ -1,15 +1,20 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { supabase } from "../lib/db/supabase";
   import ConnectionBanner from "../lib/components/ConnectionBanner.svelte";
+  import ErrorBanner from "../lib/components/ErrorBanner.svelte";
   import { initializeStores, players, connectionStatus } from "../lib/db/store";
-  import { MAX_NAME_LENGTH } from "../lib/constants";
+  import { MAX_NAME_LENGTH, JOIN_SYNC_TIMEOUT } from "../lib/constants";
   import { navigate } from "../lib/router";
   import type { Player } from "../lib/types";
+  import { get } from "svelte/store";
+
+  let isLoading = true;
 
   onMount(async () => {
     // 1. Initialize Stores
     await initializeStores();
+    isLoading = false;
   });
 
   let currentJoinId: string | null = null; // Track ID we are currently attempting to join with
@@ -48,6 +53,15 @@
   let isJoined = false;
   let joinedName = "";
   let isSubmitting = false;
+  let unsubscribe: (() => void) | null = null;
+
+  // Cleanup on component destroy
+  onDestroy(() => {
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+  });
 
   // Validation function
   function validatePlayerName(name: string): string {
@@ -108,31 +122,69 @@
         localStorage.setItem("beehive_player_id", data.id);
 
         // Wait for the player to appear in the store (Realtime sync)
-        // This prevents a race condition where we redirect before the store knows about us
-        const checkStore = setInterval(() => {
-          const exists = $players.find((p: Player) => p.id === data.id);
-          if (exists) {
-            clearInterval(checkStore);
-            navigate("/player");
-          }
-        }, 100);
-
-        // Safety timeout (5s) to force redirect if realtime fails
-        setTimeout(() => {
-          clearInterval(checkStore);
-          navigate("/player");
-        }, 5000);
+        // Use a Promise-based approach instead of polling
+        await waitForPlayerInStore(data.id);
+        
+        // Navigate to player dashboard
+        navigate("/player");
       }
     } catch (error: any) {
       console.error("Error joining game:", error);
       if (error.code === "23505") {
         errorMessage = "This name is already taken. Please choose another.";
+      } else if (error.message) {
+        errorMessage = `Failed to join game: ${error.message}. Please try again.`;
       } else {
-        errorMessage = `Failed to join: ${error.message || "Unknown error"}`;
+        errorMessage = "Failed to join game. Please check your connection and try again.";
       }
     } finally {
       isSubmitting = false;
     }
+  }
+
+  /**
+   * Wait for a player to appear in the reactive store
+   * Uses a Promise that resolves when the player is found or times out
+   * 
+   * Cleanup behavior:
+   * - If player already exists: Early return, no subscription created (no cleanup needed)
+   * - If player found via subscription: Clears timeout and unsubscribes immediately
+   * - If timeout fires: Unsubscribes and proceeds anyway
+   * - Component onDestroy: Cleans up any remaining subscription as fallback
+   */
+  function waitForPlayerInStore(playerId: string): Promise<void> {
+    return new Promise((resolve) => {
+      // Check if player already exists - early return path
+      // No subscription is created, so no cleanup is needed
+      const currentPlayers = get(players);
+      if (currentPlayers.find((p: Player) => p.id === playerId)) {
+        resolve();
+        return;
+      }
+
+      // Set up timeout - will clean up subscription if it fires
+      const timeoutId = setTimeout(() => {
+        if (unsubscribe) {
+          unsubscribe();
+          unsubscribe = null;
+        }
+        console.warn(`Player sync timed out after ${JOIN_SYNC_TIMEOUT}ms, proceeding anyway`);
+        resolve();
+      }, JOIN_SYNC_TIMEOUT);
+
+      // Subscribe to store changes - will clean up on success
+      unsubscribe = players.subscribe(($players) => {
+        const exists = $players.find((p: Player) => p.id === playerId);
+        if (exists) {
+          clearTimeout(timeoutId);
+          if (unsubscribe) {
+            unsubscribe();
+            unsubscribe = null;
+          }
+          resolve();
+        }
+      });
+    });
   }
 
   function handleKeyPress(event: KeyboardEvent) {
@@ -146,14 +198,25 @@
 
 <div class="container join-container">
   <header>
-    <h1>🐝 Beehive Gameshow</h1>
+    <h1><img src="/beehive-icon.png" alt="Beehive" class="title-icon" />Gameshow of Totally Reasonable and Normal Games<img src="/beehive-icon.png" alt="Beehive" class="title-icon" /></h1>
     <p class="subtitle">Join the Game</p>
   </header>
 
-  <div class="join-content">
+  {#if isLoading}
+    <div class="join-content">
+      <div class="loading-container" aria-live="polite" aria-busy="true">
+        <div class="loading-spinner-large" role="status" aria-label="Loading"></div>
+        <p>Connecting to game...</p>
+      </div>
+    </div>
+  {:else}
+    <div class="join-content">
     {#if !isJoined}
       <div id="joinForm" class="join-form">
         <h2>Enter Your Name</h2>
+        
+        <ErrorBanner message={errorMessage} onDismiss={() => (errorMessage = "")} />
+        
         <div class="input-wrapper">
           <input
             type="text"
@@ -181,9 +244,6 @@
             Join Game
           {/if}
         </button>
-        {#if errorMessage}
-          <p id="errorMessage" class="error-message">{errorMessage}</p>
-        {/if}
       </div>
     {:else}
       <div id="successMessage" class="success-message">
@@ -194,4 +254,5 @@
       </div>
     {/if}
   </div>
+  {/if}
 </div>

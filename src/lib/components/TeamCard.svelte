@@ -3,6 +3,7 @@
   import { updateTeam, deleteTeam } from "../db/teamOperations";
   import { updateTeamPoints, updatePlayerPoints } from "../db/pointsOperations";
   import { players } from "../db/store";
+  import ErrorBanner from "./ErrorBanner.svelte";
 
   export let team: Team;
 
@@ -77,22 +78,15 @@
       const result = await updateTeam(team.id, updates);
 
       if (!result.success) {
-        // Show errors but flip back to display mode
-        errorMessage = result.errors.join("; ");
-        setTimeout(() => {
-          isEditMode = false;
-          errorMessage = "";
-        }, 3000);
+        errorMessage = `Failed to update team: ${result.errors.join(", ")}`;
       } else {
         // Success - flip back to display mode
         isEditMode = false;
+        errorMessage = "";
       }
     } catch (error: any) {
-      errorMessage = error.message || "An unexpected error occurred";
-      setTimeout(() => {
-        isEditMode = false;
-        errorMessage = "";
-      }, 3000);
+      console.error("Team update failed:", error);
+      errorMessage = `Failed to update team: ${error.message || "Unknown error"}. Please try again.`;
     } finally {
       isSaving = false;
     }
@@ -103,28 +97,48 @@
       return;
     }
 
-    const result = await deleteTeam(team.id);
-    if (!result.success) {
-      alert(`Failed to delete team: ${result.error}`);
+    errorMessage = "";
+    try {
+      const result = await deleteTeam(team.id);
+      if (!result.success) {
+        errorMessage = `Failed to delete team: ${result.error}`;
+      }
+    } catch (error: any) {
+      console.error("Team delete failed:", error);
+      errorMessage = `Failed to delete team: ${error.message || "Unknown error"}. Please try again.`;
     }
   }
 
   async function handleTeamPoints(delta: number) {
-    const result = await updateTeamPoints(team.id, delta);
-    if (!result.success) {
-      alert("Failed to update team points: " + result.error);
+    errorMessage = "";
+    try {
+      const result = await updateTeamPoints(team.id, delta);
+      if (!result.success) {
+        errorMessage = `Failed to update team points: ${result.error}`;
+      }
+    } catch (error: any) {
+      console.error("Team points update failed:", error);
+      errorMessage = `Failed to update team points: ${error.message || "Unknown error"}`;
     }
   }
 
   async function handlePlayerPoints(playerId: string, delta: number) {
-    const result = await updatePlayerPoints(playerId, delta);
-    if (!result.success) {
-      alert("Failed to update player points: " + result.error);
+    errorMessage = "";
+    try {
+      const result = await updatePlayerPoints(playerId, delta);
+      if (!result.success) {
+        errorMessage = `Failed to update player points: ${result.error}`;
+      }
+    } catch (error: any) {
+      console.error("Player points update failed:", error);
+      errorMessage = `Failed to update player points: ${error.message || "Unknown error"}`;
     }
   }
 </script>
 
 <div class="team-card">
+  <ErrorBanner message={errorMessage} autoDismiss={true} onDismiss={() => (errorMessage = "")} />
+  
   {#if !isEditMode}
     <!-- Display Mode -->
     <div class="team-header">

@@ -11,6 +11,12 @@ export function navigate(path: string) {
 }
 
 // Handle browser back/forward buttons
-window.addEventListener("popstate", () => {
-  currentRoute.set(window.location.pathname);
-});
+// Returns a cleanup function
+export function initRouter() {
+  const onPopState = () => currentRoute.set(window.location.pathname);
+  window.addEventListener("popstate", onPopState);
+
+  return () => {
+    window.removeEventListener("popstate", onPopState);
+  };
+}

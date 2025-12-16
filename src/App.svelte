@@ -3,9 +3,11 @@
   import Host from "./routes/Host.svelte";
   import Join from "./routes/Join.svelte";
   import Player from "./routes/Player.svelte";
-  import { currentRoute, navigate } from "./lib/router";
+  import { currentRoute, navigate, initRouter } from "./lib/router";
 
   onMount(() => {
+    // Initialize router listener
+    const cleanupRouter = initRouter();
     const handleLinkClick = (event: MouseEvent) => {
       // Only handle left-clicks without modifier keys
       if (
@@ -38,6 +40,7 @@
 
     return () => {
       document.removeEventListener("click", handleLinkClick);
+      cleanupRouter();
     };
   });
 </script>

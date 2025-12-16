@@ -42,7 +42,7 @@
 <div class="container">
   <PageHeader subtitle="Host Dashboard" />
   
-  <div style="text-align: center; margin-bottom: 20px;">
+  <div class="leaderboard-button-wrapper">
     <button 
       class="btn btn-secondary open-leaderboard-btn"
       on:click={() => window.open('/leaderboard', '_blank')}
@@ -82,3 +82,10 @@
   {/if}
   {/if}
 </div>
+
+<style>
+  .leaderboard-button-wrapper {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+</style>

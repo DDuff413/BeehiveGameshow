@@ -9,6 +9,27 @@ import { derived, writable } from "svelte/store";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 
+// Type validation functions
+function isValidPlayer(data: any): data is Player {
+  return (
+    data &&
+    typeof data.id === "string" &&
+    typeof data.name === "string" &&
+    typeof data.joined_at === "string" &&
+    (data.points === null || typeof data.points === "number") &&
+    (data.team_id === null || typeof data.team_id === "string")
+  );
+}
+
+function isValidTeam(data: any): data is Team {
+  return (
+    data &&
+    typeof data.id === "string" &&
+    typeof data.name === "string" &&
+    typeof data.created_at === "string"
+  );
+}
+
 // Stores
 export const players = writable<Player[]>([]);
 export const teams = writable<Team[]>([]);
@@ -138,14 +159,22 @@ export async function initializeStores() {
           let newPlayers = [...currentPlayers];
 
           if (payload.eventType === "INSERT") {
+            if (!isValidPlayer(payload.new)) {
+              console.error("Invalid player data received:", payload.new);
+              return currentPlayers;
+            }
             const exists = newPlayers.some((p) => p.id === payload.new.id);
             if (!exists) {
-              newPlayers.push(payload.new as Player);
+              newPlayers.push(payload.new);
             }
           } else if (payload.eventType === "UPDATE") {
+            if (!isValidPlayer(payload.new)) {
+              console.error("Invalid player data received:", payload.new);
+              return currentPlayers;
+            }
             const index = newPlayers.findIndex((p) => p.id === payload.new.id);
             if (index !== -1) {
-              newPlayers[index] = payload.new as Player;
+              newPlayers[index] = payload.new;
             }
           } else if (payload.eventType === "DELETE") {
             newPlayers = newPlayers.filter((p) => p.id !== payload.old.id);
@@ -172,14 +201,22 @@ export async function initializeStores() {
           let newTeams = [...currentTeams];
 
           if (payload.eventType === "INSERT") {
+            if (!isValidTeam(payload.new)) {
+              console.error("Invalid team data received:", payload.new);
+              return currentTeams;
+            }
             const exists = newTeams.some((t) => t.id === payload.new.id);
             if (!exists) {
-              newTeams.push(payload.new as Team);
+              newTeams.push(payload.new);
             }
           } else if (payload.eventType === "UPDATE") {
+            if (!isValidTeam(payload.new)) {
+              console.error("Invalid team data received:", payload.new);
+              return currentTeams;
+            }
             const index = newTeams.findIndex((t) => t.id === payload.new.id);
             if (index !== -1) {
-              newTeams[index] = payload.new as Team;
+              newTeams[index] = payload.new;
             }
           } else if (payload.eventType === "DELETE") {
             newTeams = newTeams.filter((t) => t.id !== payload.old.id);

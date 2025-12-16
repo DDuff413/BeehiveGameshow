@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Team, Player } from "../types";
   import { updateTeam, deleteTeam } from "../db/teamOperations";
+  import { updateTeamPoints, updatePlayerPoints } from "../db/pointsOperations";
   import { players } from "../db/store";
 
   export let team: Team;
@@ -107,6 +108,20 @@
       alert(`Failed to delete team: ${result.error}`);
     }
   }
+
+  async function handleTeamPoints(delta: number) {
+    const result = await updateTeamPoints(team.id, delta);
+    if (!result.success) {
+      alert("Failed to update team points: " + result.error);
+    }
+  }
+
+  async function handlePlayerPoints(playerId: string, delta: number) {
+    const result = await updatePlayerPoints(playerId, delta);
+    if (!result.success) {
+      alert("Failed to update player points: " + result.error);
+    }
+  }
 </script>
 
 <div class="team-card">
@@ -128,9 +143,34 @@
         <p class="empty-state">No players assigned</p>
       {:else}
         {#each teamPlayers as player (player.id)}
-          <div class="team-member">{player.name}</div>
+          <div class="team-member">
+            <span class="member-name">{player.name}</span>
+            <div class="member-controls">
+              <button
+                class="btn-point small minus"
+                on:click={() => handlePlayerPoints(player.id, -1)}
+                disabled={(player.points ?? 0) <= 0}>-</button
+              >
+              <span class="member-points">{player.points ?? 0}</span>
+              <button
+                class="btn-point small plus"
+                on:click={() => handlePlayerPoints(player.id, 1)}>+</button
+              >
+            </div>
+          </div>
         {/each}
       {/if}
+    </div>
+    <div class="team-footer">
+      <span class="footer-label">Team Points:</span>
+      <div class="team-points-controls">
+        <button class="btn-point minus" on:click={() => handleTeamPoints(-1)}
+          >-</button
+        >
+        <button class="btn-point plus" on:click={() => handleTeamPoints(1)}
+          >+</button
+        >
+      </div>
     </div>
   {:else}
     <!-- Edit Mode -->
@@ -173,7 +213,10 @@
         <h4>Add Players:</h4>
         {#each playerSelectionsToAdd as selection, index (index)}
           <div class="player-add-row">
-            <select bind:value={playerSelectionsToAdd[index]} disabled={isSaving}>
+            <select
+              bind:value={playerSelectionsToAdd[index]}
+              disabled={isSaving}
+            >
               <option value="">Select a player...</option>
               {#each unassignedPlayers as player (player.id)}
                 <option value={player.id}>{player.name}</option>
@@ -206,7 +249,11 @@
       {/if}
 
       <div class="edit-actions">
-        <button class="btn btn-success" on:click={handleSave} disabled={isSaving}>
+        <button
+          class="btn btn-success"
+          on:click={handleSave}
+          disabled={isSaving}
+        >
           {isSaving ? "Saving..." : "Save"}
         </button>
         <button
@@ -269,6 +316,84 @@
     padding: 0.5rem;
     background: #f0f0f0;
     border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .member-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .member-points {
+    font-size: 0.9rem;
+    font-weight: bold;
+    min-width: 1.2rem;
+    text-align: center;
+  }
+
+  .team-footer {
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-label {
+    font-weight: bold;
+    color: #555;
+  }
+
+  .team-points-controls {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  /* Shared Point Button Styles */
+  .btn-point {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s;
+    padding: 0;
+  }
+
+  .btn-point.small {
+    width: 20px;
+    height: 20px;
+    font-size: 0.8rem;
+  }
+
+  .btn-point.minus {
+    background: #ffebee;
+    color: #c62828;
+  }
+
+  .btn-point.plus {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  .btn-point:hover:not(:disabled) {
+    transform: scale(1.1);
+    filter: brightness(0.95);
+  }
+
+  .btn-point:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: #eee;
+    color: #999;
   }
 
   .empty-state {
@@ -362,7 +487,7 @@
 
   .btn-add-selection {
     padding: 0.5rem 1rem;
-    background: #4CAF50;
+    background: #4caf50;
     color: white;
     border: none;
     border-radius: 4px;
@@ -412,7 +537,7 @@
   }
 
   .btn-success {
-    background: #4CAF50;
+    background: #4caf50;
     color: white;
   }
 

@@ -3,6 +3,7 @@
   import Host from "./routes/Host.svelte";
   import Join from "./routes/Join.svelte";
   import Player from "./routes/Player.svelte";
+  import Leaderboard from "./routes/Leaderboard.svelte";
   import { currentRoute, navigate, initRouter } from "./lib/router";
 
   onMount(() => {
@@ -49,6 +50,8 @@
   <Join />
 {:else if $currentRoute === "/player"}
   <Player />
+{:else if $currentRoute === "/leaderboard"}
+  <Leaderboard />
 {:else}
   <Host />
 {/if}

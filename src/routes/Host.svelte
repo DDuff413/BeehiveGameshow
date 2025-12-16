@@ -42,6 +42,12 @@
   <header>
     <h1><img src="/beehive-icon.png" alt="Beehive" class="title-icon" />Gameshow of Totally Reasonable and Normal Games<img src="/beehive-icon.png" alt="Beehive" class="title-icon" /></h1>
     <p class="subtitle">Host Dashboard</p>
+    <button 
+      class="btn btn-secondary open-leaderboard-btn"
+      on:click={() => window.open('/leaderboard', '_blank')}
+    >
+      📊 Open Leaderboard Display
+    </button>
   </header>
 
   {#if isLoading}

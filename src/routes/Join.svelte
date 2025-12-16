@@ -8,9 +8,12 @@
   import { navigate } from "../lib/router";
   import type { Player } from "../lib/types";
 
+  let isLoading = true;
+
   onMount(async () => {
     // 1. Initialize Stores
     await initializeStores();
+    isLoading = false;
   });
 
   let currentJoinId: string | null = null; // Track ID we are currently attempting to join with
@@ -153,7 +156,15 @@
     <p class="subtitle">Join the Game</p>
   </header>
 
-  <div class="join-content">
+  {#if isLoading}
+    <div class="join-content">
+      <div class="loading-container">
+        <div class="loading-spinner-large"></div>
+        <p>Connecting to game...</p>
+      </div>
+    </div>
+  {:else}
+    <div class="join-content">
     {#if !isJoined}
       <div id="joinForm" class="join-form">
         <h2>Enter Your Name</h2>
@@ -197,4 +208,5 @@
       </div>
     {/if}
   </div>
+  {/if}
 </div>

@@ -19,6 +19,7 @@
   let isActionPending = false;
   let showTeammates = false;
   let errorMessage = "";
+  let isLoading = true;
 
   onMount(async () => {
     // 1. Initialize Stores
@@ -30,6 +31,8 @@
       navigate("/join");
       return;
     }
+    
+    isLoading = false;
   });
 
   // Reactive Logic
@@ -84,7 +87,12 @@
 <ConnectionBanner />
 
 <div class="container">
-  {#if currentPlayer}
+  {#if isLoading}
+    <div class="loading-container">
+      <div class="loading-spinner-large"></div>
+      <p>Loading your dashboard...</p>
+    </div>
+  {:else if currentPlayer}
     <header>
       <h1>🐝 Beehive</h1>
       <p class="subtitle">Player Dashboard</p>

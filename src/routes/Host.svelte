@@ -15,6 +15,7 @@
 
   let qrCode = "";
   let joinUrl = "";
+  let isLoading = true;
 
   onMount(async () => {
     // 1. Initialize Stores (Fetch + Subscribe)
@@ -27,6 +28,8 @@
     } catch (err) {
       console.error("QR Gen Error", err);
     }
+    
+    isLoading = false;
   });
 
   $: hasPlayers = $players.length > 0;
@@ -41,27 +44,34 @@
     <p class="subtitle">Host Dashboard</p>
   </header>
 
-  <div class="main-content">
-    <QRCodeSection {qrCode} {joinUrl} />
-    <PlayersList players={$players} teams={$teams} />
-  </div>
+  {#if isLoading}
+    <div class="loading-container">
+      <div class="loading-spinner-large"></div>
+      <p>Loading dashboard...</p>
+    </div>
+  {:else}
+    <div class="main-content">
+      <QRCodeSection {qrCode} {joinUrl} />
+      <PlayersList players={$players} teams={$teams} />
+    </div>
 
-  <TeamControls
-    players={$players}
-    allTeams={$teams}
-    {hasPlayers}
-    {hasTeams}
-  />
+    <TeamControls
+      players={$players}
+      allTeams={$teams}
+      {hasPlayers}
+      {hasTeams}
+    />
 
-  <!-- Teams Display -->
-  {#if hasTeams}
-    <div class="teams-section" id="teamsSection">
-      <h2>Teams</h2>
-      <div id="teamsList" class="teams-list">
+    <!-- Teams Display -->
+    {#if hasTeams}
+      <div class="teams-section" id="teamsSection">
+        <h2>Teams</h2>
+        <div id="teamsList" class="teams-list">
         {#each $teamsWithPlayers as team (team.id)}
           <TeamCard {team} />
         {/each}
       </div>
     </div>
+  {/if}
   {/if}
 </div>

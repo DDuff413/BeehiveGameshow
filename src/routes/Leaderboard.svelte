@@ -390,8 +390,8 @@
 
   .leaderboard-title {
     text-align: center;
-    font-size: 2.5rem;
-    margin-bottom: 40px;
+    font-size: 2rem;
+    margin-bottom: 25px;
     color: var(--text-color);
   }
 
@@ -402,80 +402,54 @@
 
   .leaderboard-row {
     display: grid;
-    grid-template-columns: 60px 1fr 2fr;
-    gap: 20px;
+    grid-template-columns: 50px 1fr 2fr;
+    gap: 12px;
     align-items: center;
-    margin-bottom: 20px;
-    padding: 20px;
+    margin-bottom: 8px;
+    padding: 12px 16px;
     background: var(--bg-color);
-    border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: transform 0.2s, box-shadow 0.2s;
   }
 
   .leaderboard-row:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .leaderboard-row:nth-child(1) {
-    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
-  }
-
-  .leaderboard-row:nth-child(2) {
-    background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
-  }
-
-  .leaderboard-row:nth-child(3) {
-    background: linear-gradient(135deg, #cd7f32 0%, #e8a87c 100%);
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .rank-badge {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     background: var(--primary-color);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     color: white;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  }
-
-  .leaderboard-row:nth-child(1) .rank-badge {
-    background: #ffa500;
-    font-size: 1.5rem;
-  }
-
-  .leaderboard-row:nth-child(2) .rank-badge {
-    background: #808080;
-  }
-
-  .leaderboard-row:nth-child(3) .rank-badge {
-    background: #8b4513;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
   }
 
   .player-info {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 12px;
   }
 
   .player-name-leaderboard {
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-size: 1.1rem;
+    font-weight: 600;
     color: var(--text-color);
   }
 
   .points-badge {
     background: var(--success-color);
     color: white;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.95rem;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 0.85rem;
     font-weight: 600;
     white-space: nowrap;
   }
@@ -483,7 +457,7 @@
   .progress-container {
     background: rgba(0, 0, 0, 0.1);
     border-radius: 50px;
-    height: 30px;
+    height: 24px;
     overflow: hidden;
     position: relative;
   }

@@ -93,6 +93,14 @@
       <p>Loading your dashboard...</p>
     </div>
   {:else if currentPlayer}
+    <!-- Navigation Bar -->
+    <nav class="player-nav">
+      <a href="/leaderboard" class="nav-link">
+        <span class="nav-icon">📊</span>
+        <span>View Leaderboard</span>
+      </a>
+    </nav>
+
     <header>
       <h1><img src="/beehive-icon.png" alt="Beehive" class="title-icon" />Gameshow of Totally Reasonable and Normal Games<img src="/beehive-icon.png" alt="Beehive" class="title-icon" /></h1>
       <p class="subtitle">Player Dashboard</p>
@@ -246,5 +254,35 @@
   .loading-state {
     text-align: center;
     padding: 2rem;
+  }
+
+  .player-nav {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--card-bg);
+    border-radius: 50px;
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 600;
+    box-shadow: var(--shadow);
+    transition: all 0.3s;
+  }
+
+  .nav-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: var(--primary-color);
+  }
+
+  .nav-icon {
+    font-size: 1.2rem;
   }
 </style>

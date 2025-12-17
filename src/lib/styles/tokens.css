@@ -22,41 +22,33 @@
   --color-info: #2196f3;
 
   /* Neutral Colors (Grays) */
-  --color-gray-50: #fafafa;
-  --color-gray-100: #f5f5f5;
   --color-gray-200: #eeeeee;
   --color-gray-300: #e0e0e0;
   --color-gray-400: #bdbdbd;
-  --color-gray-500: #9e9e9e;
   --color-gray-600: #757575;
   --color-gray-700: #616161;
-  --color-gray-800: #424242;
-  --color-gray-900: #212121;
 
   /* Text Colors */
   --color-text-primary: #333333;
   --color-text-secondary: #666666;
   --color-text-tertiary: #999999;
-  --color-text-disabled: #bdbdbd;
   --color-text-inverse: #ffffff;
 
   /* Background Colors */
   --color-bg-primary: #fff8e1;
   --color-bg-secondary: #fff9c4;
   --color-bg-card: #ffffff;
-  --color-bg-overlay: rgba(0, 0, 0, 0.5);
   --color-bg-input: #f0f0f0;
 
   /* Border Colors */
   --color-border-light: #ffe082;
   --color-border-medium: #cccccc;
-  --color-border-dark: #999999;
 
   /* State Colors with Alpha */
   --color-success-alpha-10: rgba(76, 175, 80, 0.1);
   --color-danger-alpha-10: rgba(255, 0, 0, 0.1);
-  --color-overlay-light: rgba(0, 0, 0, 0.2);
-  --color-overlay-medium: rgba(255, 255, 255, 0.95);
+  --color-overlay-dark: rgba(0, 0, 0, 0.2);
+  --color-overlay-light: rgba(255, 255, 255, 0.95);
 
   /* Component-Specific Colors */
   --color-error-bg: #ffebee;
@@ -91,7 +83,6 @@
   --font-size-2xl: 1.5rem; /* 24px */
   --font-size-3xl: 1.875rem; /* 30px */
   --font-size-4xl: 2.25rem; /* 36px */
-  --font-size-5xl: 3rem; /* 48px */
   --font-size-6xl: 4rem; /* 64px */
 
   /* Font Weights */
@@ -104,21 +95,14 @@
   /* Line Heights */
   --line-height-tight: 1.25;
   --line-height-normal: 1.5;
-  --line-height-relaxed: 1.75;
 
   /* Letter Spacing */
-  --letter-spacing-tight: -0.025em;
-  --letter-spacing-normal: 0;
-  --letter-spacing-wide: 0.025em;
-  --letter-spacing-wider: 0.05em;
   --letter-spacing-widest: 0.1em;
 
   /* Border Radius */
   --radius-sm: 0.25rem; /* 4px */
   --radius-md: 0.5rem; /* 8px */
   --radius-lg: 0.75rem; /* 12px */
-  --radius-xl: 1rem; /* 16px */
-  --radius-2xl: 1.5rem; /* 24px */
   --radius-full: 9999px; /* Fully rounded */
 
   /* Shadows (Elevation) */
@@ -139,13 +123,7 @@
 
   /* Z-Index Scale */
   --z-base: 0;
-  --z-dropdown: 10;
-  --z-sticky: 100;
   --z-fixed: 200;
-  --z-modal-backdrop: 900;
-  --z-modal: 1000;
-  --z-popover: 1100;
-  --z-tooltip: 1200;
 
   /* ============================================
      RESPONSIVE BREAKPOINTS
@@ -169,6 +147,5 @@
 
   /* Component-Specific Max Widths */
   --max-width-qr: 256px;
-  --max-width-card: 250px;
   --max-width-input: 400px;
 }

@@ -113,8 +113,8 @@
   }
 
   .error-banner-dismiss:focus {
-    outline: 2px solid var(--color-error-border);
-    outline-offset: 2px;
+    outline: var(--space-1) solid var(--color-error-border);
+    outline-offset: var(--space-1);
     border-radius: var(--radius-sm);
   }
 </style>

@@ -272,7 +272,7 @@
   }
 
   .team-display-members {
-    background: var(--color-overlay-medium);
+    background: var(--color-overlay-light);
     padding: var(--space-4);
     border-radius: var(--radius-md);
     display: flex;

@@ -198,8 +198,8 @@ Create a comprehensive design tokens system and refactor all components to use s
   /* State Colors with Alpha */
   --color-success-alpha-10: rgba(76, 175, 80, 0.1);
   --color-danger-alpha-10: rgba(255, 0, 0, 0.1);
-  --color-overlay-light: rgba(255, 255, 255, 0.9);
-  --color-overlay-medium: rgba(255, 255, 255, 0.95);
+  --color-overlay-dark: rgba(255, 255, 255, 0.9);
+  --color-overlay-light: rgba(255, 255, 255, 0.95);
 
   /* Component-Specific Colors */
   --color-error-bg: #ffebee;
@@ -589,7 +589,7 @@ box-shadow: var(--shadow-glow);
 background: rgba(255, 255, 255, 0.95);
 
 /* AFTER */
-background: var(--color-overlay-medium);
+background: var(--color-overlay-light);
 ```
 
 ### 2.7 Player.svelte (4 hard-coded values)
@@ -607,7 +607,7 @@ box-shadow: var(--shadow-lg);
 background: rgba(0, 0, 0, 0.2);
 
 /* AFTER */
-background: var(--color-overlay-light);
+background: var(--color-overlay-dark);
 ```
 
 ### 2.8 Remaining Components

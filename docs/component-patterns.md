@@ -96,13 +96,11 @@ Used for compact actions in tight spaces.
 Used in PlayerDisplay and TeamCard for +/- point controls.
 
 ```css
-/* Add Points Button */
-.btn-point.plus {
-  background: var(--color-success-light);
-  color: var(--color-success-dark);
+/* Shared Point Button Base */
+.btn-point {
+  width: var(--space-7);
+  height: var(--space-7);
   border-radius: var(--radius-full);
-  width: 28px;
-  height: 28px;
   border: none;
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
@@ -111,6 +109,13 @@ Used in PlayerDisplay and TeamCard for +/- point controls.
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+}
+
+/* Add Points Button */
+.btn-point.plus {
+  background: var(--color-success-light);
+  color: var(--color-success-dark);
 }
 
 .btn-point.plus:hover {
@@ -121,18 +126,7 @@ Used in PlayerDisplay and TeamCard for +/- point controls.
 /* Subtract Points Button */
 .btn-point.minus {
   background: var(--color-danger-light);
-  color: var(--color-error-text);
-  border-radius: var(--radius-full);
-  width: 28px;
-  height: 28px;
-  border: none;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  cursor: pointer;
-  transition: var(--transition-fast);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: var(--color-danger-dark);
 }
 
 .btn-point.minus:hover {
@@ -177,7 +171,7 @@ Card with brand-colored border for emphasis.
   background: var(--color-bg-card);
   padding: var(--space-5);
   border-radius: var(--radius-lg);
-  border-left: 4px solid var(--color-primary);
+  border-left: var(--space-1) solid var(--color-primary);
   box-shadow: var(--shadow-md);
 }
 ```
@@ -189,23 +183,23 @@ Specialized card for team display with header.
 ```css
 .team-card {
   background: var(--color-bg-card);
-  border: 2px solid var(--color-text-primary);
-  border-radius: var(--radius-lg);
-  padding: var(--space-0);
-  box-shadow: var(--shadow-md);
-}
-
-.team-card-header {
-  background: var(--color-text-primary);
-  color: var(--color-text-inverse);
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-}
-
-.team-card-content {
+  border: var(--space-1) solid var(--color-text-primary);
+  border-radius: var(--radius-md);
   padding: var(--space-4);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-4);
+}
+
+.team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.team-header h3 {
+  margin: 0;
+  color: var(--color-text-primary);
 }
 ```
 
@@ -372,16 +366,17 @@ Shows connection status with color-coded states.
 ```css
 .input-field {
   width: 100%;
-  padding: var(--space-3);
-  border: 2px solid var(--color-border-medium);
+  padding: var(--space-2) var(--space-4);
+  border: var(--space-1) solid var(--color-border-light);
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
-  background: var(--color-bg-input);
+  background: var(--color-bg-card);
   transition: var(--transition-fast);
 }
 
 .input-field:focus {
-  outline: none;
+  outline: var(--space-1) solid var(--color-primary);
+  outline-offset: var(--space-1);
   border-color: var(--color-primary);
   box-shadow: var(--shadow-glow);
 }
@@ -420,7 +415,7 @@ Shows connection status with color-coded states.
 .mode-chip {
   padding: var(--space-3) var(--space-6);
   border-radius: var(--radius-full);
-  border: 2px solid var(--color-border-medium);
+  border: var(--space-1) solid var(--color-border-medium);
   background: var(--color-bg-card);
   cursor: pointer;
   transition: var(--transition-base);
@@ -547,7 +542,7 @@ Shows connection status with color-coded states.
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid var(--color-gray-200);
+  border: var(--space-1) solid var(--color-gray-200);
   border-top-color: var(--color-primary);
   border-radius: var(--radius-full);
   animation: spin var(--transition-slowest) linear infinite;
@@ -559,6 +554,43 @@ Shows connection status with color-coded states.
   }
 }
 ```
+
+## ♿ Accessibility & Focus States
+
+### Focus Indicators
+
+**CRITICAL:** All interactive elements must have visible focus indicators for keyboard navigation (WCAG 2.2 compliance).
+
+```css
+/* Standard focus state pattern */
+button:focus,
+a:focus,
+input:focus {
+  outline: var(--space-1) solid var(--color-primary);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+/* Error context focus (e.g., dismiss buttons in error banners) */
+.error-dismiss:focus {
+  outline: var(--space-1) solid var(--color-error-border);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-sm);
+}
+
+/* Success context focus */
+.success-button:focus {
+  outline: var(--space-1) solid var(--color-success-dark);
+  outline-offset: var(--space-1);
+}
+```
+
+**Pattern Rules:**
+
+- Outline width: Always use `var(--space-1)` (4px) for WCAG compliance
+- Outline offset: Use `var(--space-1)` for comfortable spacing
+- Outline color: Match context (primary, error, success)
+- Never use `outline: none` without providing an alternative focus indicator
 
 ## ✅ Best Practices
 

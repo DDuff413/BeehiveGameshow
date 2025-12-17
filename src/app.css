@@ -297,7 +297,7 @@ h2 {
 input[type="number"],
 input[type="text"] {
   padding: var(--space-2) var(--space-4);
-  border: 2px solid var(--color-border-light);
+  border: var(--space-1) solid var(--color-border-light);
   border-radius: var(--radius-md);
   font-size: var(--font-size-base);
   width: 120px;
@@ -305,7 +305,7 @@ input[type="text"] {
 
 input[type="text"] {
   width: 100%;
-  max-width: 400px;
+  max-width: var(--max-width-input);
 }
 
 input:focus {
@@ -374,7 +374,7 @@ input:focus {
 }
 
 .team-members {
-  background: var(--color-overlay-medium);
+  background: var(--color-overlay-light);
   padding: var(--space-4);
   border-radius: var(--radius-md);
 }
@@ -393,7 +393,7 @@ input:focus {
 
 /* Join Page Styles */
 .join-container {
-  max-width: 500px;
+  max-width: var(--container-sm);
 }
 
 .join-content {
@@ -499,8 +499,8 @@ input:focus {
 /* Legacy error message styling for Join.svelte inline errors */
 .error-message {
   color: var(--color-danger);
-  margin-top: 15px;
-  font-weight: 500;
+  margin-top: var(--space-4);
+  font-weight: var(--font-weight-medium);
 }
 
 .error-close:hover {
@@ -512,7 +512,7 @@ input:focus {
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid var(--color-overlay-light);
+  border: var(--space-1) solid var(--color-overlay-dark);
   border-top-color: var(--color-text-inverse);
   border-radius: var(--radius-full);
   animation: spin 0.6s linear infinite;
@@ -538,7 +538,7 @@ input:focus {
   display: inline-block;
   width: var(--space-12);
   height: var(--space-12);
-  border: 4px solid var(--color-border-light);
+  border: var(--space-1) solid var(--color-border-light);
   border-top-color: var(--color-primary);
   border-radius: var(--radius-full);
   animation: spin 0.8s linear infinite;
@@ -546,7 +546,7 @@ input:focus {
 }
 
 .loading-container > * {
-  max-width: min(100%, 250px);
+  max-width: min(100%, var(--max-width-qr));
 }
 
 .loading-container p {

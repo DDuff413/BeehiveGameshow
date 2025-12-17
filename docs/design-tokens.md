@@ -119,8 +119,8 @@ Colors with transparency for overlays and effects.
 | -------------------------- | ---------------------- | ------------------ |
 | `--color-success-alpha-10` | rgba(76,175,80,0.1)    | Success highlights |
 | `--color-danger-alpha-10`  | rgba(255,0,0,0.1)      | Danger highlights  |
-| `--color-overlay-light`    | rgba(0,0,0,0.2)        | Light overlays     |
-| `--color-overlay-medium`   | rgba(255,255,255,0.95) | Modal backdrops    |
+| `--color-overlay-dark`     | rgba(0,0,0,0.2)        | Light overlays     |
+| `--color-overlay-light`    | rgba(255,255,255,0.95) | Modal backdrops    |
 
 ### Button Colors (2)
 

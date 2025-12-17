@@ -19,29 +19,29 @@
 <style>
   header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: var(--space-8);
   }
 
   h1 {
-    font-size: 2.5rem;
-    color: var(--text-color);
-    margin-bottom: 10px;
+    font-size: var(--font-size-4xl);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-2);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: var(--space-3);
     flex-wrap: wrap;
   }
 
   .title-icon {
-    width: 48px;
-    height: 48px;
+    width: var(--space-12);
+    height: var(--space-12);
     object-fit: contain;
     vertical-align: middle;
   }
 
   .subtitle {
-    font-size: 1.2rem;
-    color: #666;
+    font-size: var(--font-size-xl);
+    color: var(--color-text-secondary);
   }
 </style>

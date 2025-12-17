@@ -19,10 +19,14 @@
   let qrCode = "";
   let joinUrl = "";
   let isLoading = true;
+  let hasPlayerId = false;
 
   onMount(async () => {
     // Initialize Stores
     await initializeStores();
+
+    // Check if player ID exists
+    hasPlayerId = !!localStorage.getItem("beehive_player_id");
 
     // Generate QR Code
     joinUrl = `${window.location.origin}/join`;
@@ -47,12 +51,14 @@
 
 <div class="container leaderboard-container">
   <!-- Navigation Bar -->
-  <nav class="leaderboard-nav">
-    <a href="/player" class="nav-link">
-      <span class="nav-icon">👤</span>
-      <span>Back to Player Dashboard</span>
-    </a>
-  </nav>
+  {#if hasPlayerId}
+    <nav class="leaderboard-nav">
+      <a href="/player" class="nav-link">
+        <span class="nav-icon">👤</span>
+        <span>Back to Player Dashboard</span>
+      </a>
+    </nav>
+  {/if}
 
   <PageHeader subtitle="Display Board" />
 
@@ -85,8 +91,8 @@
     {#if viewMode === "players"}
       <!-- Players Mode -->
       <div class="players-view">
-        <!-- QR Code Section -->
-        <div class="qr-display">
+        <!-- QR Code Section - Desktop (sidebar) -->
+        <div class="qr-desktop">
           <QRCodeSection {qrCode} {joinUrl} />
         </div>
 
@@ -138,6 +144,11 @@
             </div>
           {/if}
         </div>
+
+        <!-- QR Code Section - Mobile (bottom) -->
+        <div class="qr-mobile">
+          <QRCodeSection {qrCode} {joinUrl} />
+        </div>
       </div>
     {:else}
       <!-- Leaderboard Mode -->
@@ -166,206 +177,225 @@
 
 <style>
   .leaderboard-container {
-    max-width: 1400px;
+    max-width: var(--container-2xl);
   }
 
   .mode-toggle {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 30px;
-    padding: 10px;
-    background: var(--card-bg);
-    border-radius: 50px;
-    box-shadow: var(--shadow);
-    max-width: 400px;
+    gap: var(--space-2);
+    margin-bottom: var(--space-8);
+    padding: var(--space-2);
+    background: var(--color-bg-card);
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-md);
+    max-width: var(--max-width-input);
     margin-left: auto;
     margin-right: auto;
   }
 
   .mode-chip {
     flex: 1;
-    padding: 12px 24px;
+    padding: var(--space-3) var(--space-6);
     border: none;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: 600;
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-semibold);
     cursor: pointer;
     background: transparent;
-    color: #666;
-    transition: all 0.3s;
+    color: var(--color-text-secondary);
+    transition: all var(--transition-base);
   }
 
   .mode-chip:hover {
-    background: var(--bg-color);
+    background: var(--color-bg-primary);
   }
 
   .mode-chip.active {
-    background: var(--primary-color);
-    color: var(--text-color);
-    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+    background: var(--color-primary);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-glow);
   }
 
   /* Players View */
   .players-view {
     display: grid;
     grid-template-columns: 1fr 2fr;
-    gap: 30px;
+    gap: var(--space-8);
     align-items: start;
   }
 
-  .qr-display {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 30px;
-    box-shadow: var(--shadow);
+  .qr-desktop {
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-md);
     text-align: center;
     position: sticky;
-    top: 20px;
+    top: var(--space-5);
+  }
+
+  .qr-mobile {
+    display: none;
   }
 
   .players-display {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 30px;
-    box-shadow: var(--shadow);
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--space-8);
+    box-shadow: var(--shadow-md);
   }
 
   .teams-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
+    gap: var(--space-5);
+    margin-bottom: var(--space-8);
   }
 
   .team-display-card {
     background: linear-gradient(
       135deg,
-      var(--primary-color) 0%,
-      var(--secondary-color) 100%
+      var(--color-primary) 0%,
+      var(--color-primary-dark) 100%
     );
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
   }
 
   .team-display-name {
-    font-size: 1.4rem;
-    margin-bottom: 15px;
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-4);
+    color: var(--color-text-inverse);
+    text-shadow: var(--shadow-sm);
   }
 
   .team-display-members {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 15px;
-    border-radius: 8px;
+    background: var(--color-overlay-light);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
   }
 
   .empty-team {
-    color: #999;
+    color: var(--color-text-tertiary);
     font-style: italic;
     text-align: center;
-    padding: 10px;
+    padding: var(--space-2);
   }
 
   .unassigned-section {
-    margin-top: 30px;
-    padding-top: 30px;
-    border-top: 2px solid var(--border-color);
+    margin-top: var(--space-8);
+    padding-top: var(--space-8);
+    border-top: 2px solid var(--color-border-light);
   }
 
   .unassigned-section h3 {
-    margin-bottom: 15px;
-    color: var(--text-color);
+    margin-bottom: var(--space-4);
+    color: var(--color-text-primary);
   }
 
   .unassigned-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 10px;
+    gap: var(--space-2);
   }
 
   .all-players-section h2 {
-    margin-bottom: 20px;
-    color: var(--text-color);
+    margin-bottom: var(--space-5);
+    color: var(--color-text-primary);
   }
 
   .all-players-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
+    gap: var(--space-4);
   }
 
   /* Leaderboard View */
   .leaderboard-view {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 40px;
-    box-shadow: var(--shadow);
+    background: var(--color-bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--space-10);
+    box-shadow: var(--shadow-md);
   }
 
   .leaderboard-title {
     text-align: center;
-    font-size: 2rem;
-    margin-bottom: 25px;
-    color: var(--text-color);
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--space-6);
+    color: var(--color-text-primary);
   }
 
   .leaderboard-chart {
-    max-width: 1000px;
+    max-width: var(--container-lg);
     margin: 0 auto;
   }
 
   .empty-state {
     text-align: center;
-    color: #999;
-    padding: 60px 20px;
-    font-size: 1.2rem;
+    color: var(--color-text-tertiary);
+    padding: var(--space-16) var(--space-5);
+    font-size: var(--font-size-xl);
     font-style: italic;
   }
 
   .leaderboard-nav {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: var(--space-5);
   }
 
   .nav-link {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background: var(--card-bg);
-    border-radius: 50px;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background: var(--color-bg-card);
+    border-radius: var(--radius-full);
     text-decoration: none;
-    color: var(--text-color);
-    font-weight: 600;
-    box-shadow: var(--shadow);
-    transition: all 0.3s;
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
   }
 
   .nav-link:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    background: var(--primary-color);
+    box-shadow: var(--shadow-2xl);
+    background: var(--color-primary);
   }
 
   .nav-icon {
-    font-size: 1.2rem;
+    font-size: var(--font-size-xl);
   }
 
   /* Responsive Design */
-  @media (max-width: 968px) {
+  /* Desktop breakpoint - see tokens.css for breakpoint documentation */
+  @media (max-width: 1024px) {
     .players-view {
       grid-template-columns: 1fr;
     }
 
-    .qr-display {
-      position: static;
+    .qr-desktop {
+      display: none;
+    }
+
+    .qr-mobile {
+      display: block;
+      margin-top: var(--space-8);
+      background: var(--color-bg-card);
+      border-radius: var(--radius-lg);
+      padding: var(--space-8);
+      box-shadow: var(--shadow-md);
+      text-align: center;
     }
   }
 
+  /* Tablet breakpoint - see tokens.css for breakpoint documentation */
   @media (max-width: 768px) {
     .mode-toggle {
       max-width: 100%;
@@ -384,7 +414,7 @@
     }
 
     .leaderboard-title {
-      font-size: 2rem;
+      font-size: var(--font-size-4xl);
     }
   }
 </style>

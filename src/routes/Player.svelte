@@ -169,60 +169,60 @@
   .player-dashboard {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
-    max-width: 500px;
+    gap: var(--space-8);
+    max-width: var(--container-sm);
     margin: 0 auto;
   }
 
   .player-header-card {
-    background: var(--bg-secondary);
-    padding: 2rem;
-    border-radius: 12px;
+    background: var(--color-bg-card);
+    padding: var(--space-8);
+    border-radius: var(--radius-lg);
     text-align: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-lg);
   }
 
   .points-display {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-top: 1rem;
+    margin-top: var(--space-4);
   }
 
   .points-value {
-    font-size: 4rem;
-    font-weight: 800;
-    color: var(--primary);
+    font-size: var(--font-size-6xl);
+    font-weight: var(--font-weight-extrabold);
+    color: var(--color-primary);
     line-height: 1;
   }
 
   .points-label {
-    font-size: 1rem;
+    font-size: var(--font-size-base);
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: var(--letter-spacing-widest);
     opacity: 0.7;
   }
 
   .team-section-card {
-    background: var(--bg-secondary);
-    padding: 1.5rem;
-    border-radius: 12px;
+    background: var(--color-bg-card);
+    padding: var(--space-6);
+    border-radius: var(--radius-lg);
   }
 
   .team-name {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--accent);
-    margin-bottom: 1rem;
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary-light);
+    margin-bottom: var(--space-4);
   }
 
   .toggle-teammates {
     background: none;
-    border: 1px solid var(--border);
-    color: var(--text);
+    border: 1px solid var(--color-border-medium);
+    color: var(--color-text-primary);
     width: 100%;
-    padding: 0.5rem;
-    border-radius: 6px;
+    padding: var(--space-2);
+    border-radius: var(--radius-md);
     cursor: pointer;
     display: flex;
     justify-content: space-between;
@@ -230,15 +230,15 @@
   }
 
   .teammates-list {
-    margin-top: 0.5rem;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 6px;
-    padding: 0.5rem;
+    margin-top: var(--space-2);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--space-2);
   }
 
   .teammate-row {
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--border);
+    padding: var(--space-2);
+    border-bottom: 1px solid var(--color-border-medium);
   }
   .teammate-row:last-child {
     border-bottom: none;
@@ -251,36 +251,36 @@
 
   .loading-state {
     text-align: center;
-    padding: 2rem;
+    padding: var(--space-8);
   }
 
   .player-nav {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: var(--space-5);
   }
 
   .nav-link {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background: var(--card-bg);
-    border-radius: 50px;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background: var(--color-bg-card);
+    border-radius: var(--radius-full);
     text-decoration: none;
-    color: var(--text-color);
-    font-weight: 600;
-    box-shadow: var(--shadow);
-    transition: all 0.3s;
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
   }
 
   .nav-link:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    background: var(--primary-color);
+    box-shadow: var(--shadow-2xl);
+    background: var(--color-primary);
   }
 
   .nav-icon {
-    font-size: 1.2rem;
+    font-size: var(--font-size-xl);
   }
 </style>

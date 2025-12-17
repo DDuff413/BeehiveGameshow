@@ -175,7 +175,7 @@
   }
 
   .player-header-card {
-    background: var(--color-bg-secondary);
+    background: var(--color-bg-card);
     padding: var(--space-8);
     border-radius: var(--radius-lg);
     text-align: center;
@@ -204,7 +204,7 @@
   }
 
   .team-section-card {
-    background: var(--color-bg-secondary);
+    background: var(--color-bg-card);
     padding: var(--space-6);
     border-radius: var(--radius-lg);
   }
@@ -231,7 +231,7 @@
 
   .teammates-list {
     margin-top: var(--space-2);
-    background: var(--color-overlay-light);
+    background: var(--color-bg-secondary);
     border-radius: var(--radius-md);
     padding: var(--space-2);
   }

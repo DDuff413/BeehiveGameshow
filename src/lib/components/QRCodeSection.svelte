@@ -27,6 +27,7 @@
   }
 
   .qr-code {
+    display: block;
     max-width: 256px;
     width: 100%;
     height: auto;

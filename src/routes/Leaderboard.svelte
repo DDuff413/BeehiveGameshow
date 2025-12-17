@@ -19,10 +19,14 @@
   let qrCode = "";
   let joinUrl = "";
   let isLoading = true;
+  let hasPlayerId = false;
 
   onMount(async () => {
     // Initialize Stores
     await initializeStores();
+
+    // Check if player ID exists
+    hasPlayerId = !!localStorage.getItem("beehive_player_id");
 
     // Generate QR Code
     joinUrl = `${window.location.origin}/join`;
@@ -47,12 +51,14 @@
 
 <div class="container leaderboard-container">
   <!-- Navigation Bar -->
-  <nav class="leaderboard-nav">
-    <a href="/player" class="nav-link">
-      <span class="nav-icon">👤</span>
-      <span>Back to Player Dashboard</span>
-    </a>
-  </nav>
+  {#if hasPlayerId}
+    <nav class="leaderboard-nav">
+      <a href="/player" class="nav-link">
+        <span class="nav-icon">👤</span>
+        <span>Back to Player Dashboard</span>
+      </a>
+    </nav>
+  {/if}
 
   <PageHeader subtitle="Display Board" />
 
@@ -85,8 +91,8 @@
     {#if viewMode === "players"}
       <!-- Players Mode -->
       <div class="players-view">
-        <!-- QR Code Section -->
-        <div class="qr-display">
+        <!-- QR Code Section - Desktop (sidebar) -->
+        <div class="qr-desktop">
           <QRCodeSection {qrCode} {joinUrl} />
         </div>
 
@@ -137,6 +143,11 @@
               {/if}
             </div>
           {/if}
+        </div>
+
+        <!-- QR Code Section - Mobile (bottom) -->
+        <div class="qr-mobile">
+          <QRCodeSection {qrCode} {joinUrl} />
         </div>
       </div>
     {:else}
@@ -214,7 +225,7 @@
     align-items: start;
   }
 
-  .qr-display {
+  .qr-desktop {
     background: var(--color-bg-card);
     border-radius: var(--radius-lg);
     padding: var(--space-8);
@@ -222,6 +233,10 @@
     text-align: center;
     position: sticky;
     top: var(--space-5);
+  }
+
+  .qr-mobile {
+    display: none;
   }
 
   .players-display {
@@ -260,6 +275,9 @@
     background: var(--color-overlay-medium);
     padding: var(--space-4);
     border-radius: var(--radius-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
   }
 
   .empty-team {
@@ -361,8 +379,18 @@
       grid-template-columns: 1fr;
     }
 
-    .qr-display {
-      position: static;
+    .qr-desktop {
+      display: none;
+    }
+
+    .qr-mobile {
+      display: block;
+      margin-top: var(--space-8);
+      background: var(--color-bg-card);
+      border-radius: var(--radius-lg);
+      padding: var(--space-8);
+      box-shadow: var(--shadow-md);
+      text-align: center;
     }
   }
 

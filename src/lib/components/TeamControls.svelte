@@ -274,19 +274,18 @@
   <div class="team-controls">
     <!-- Row 1: Create Team -->
     <div class="control-group">
-      <div class="input-wrapper">
-        <input
-          type="text"
-          id="newTeamName"
-          bind:value={newTeamName}
-          placeholder="Team name (optional)"
-          maxlength={MAX_NAME_LENGTH}
-          disabled={isActionPending}
-        />
-        {#if teamNameError}
-          <span class="validation-error">{teamNameError}</span>
-        {/if}
-      </div>
+      <input
+        type="text"
+        id="newTeamName"
+        bind:value={newTeamName}
+        placeholder="Team name (optional)"
+        maxlength={MAX_NAME_LENGTH}
+        disabled={isActionPending}
+        class:error={teamNameError}
+      />
+      {#if teamNameError}
+        <span class="validation-error team-name-error">{teamNameError}</span>
+      {/if}
       <button
         id="createTeamBtn"
         class="btn btn-success"

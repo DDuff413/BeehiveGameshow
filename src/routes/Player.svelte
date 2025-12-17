@@ -170,7 +170,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-8);
-    max-width: 500px;
+    max-width: var(--container-sm);
     margin: 0 auto;
   }
 

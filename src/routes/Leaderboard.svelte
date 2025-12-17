@@ -177,7 +177,7 @@
 
 <style>
   .leaderboard-container {
-    max-width: 1400px;
+    max-width: var(--container-2xl);
   }
 
   .mode-toggle {
@@ -189,7 +189,7 @@
     background: var(--color-bg-card);
     border-radius: var(--radius-full);
     box-shadow: var(--shadow-md);
-    max-width: 400px;
+    max-width: var(--max-width-input);
     margin-left: auto;
     margin-right: auto;
   }
@@ -331,7 +331,7 @@
   }
 
   .leaderboard-chart {
-    max-width: 1000px;
+    max-width: var(--container-lg);
     margin: 0 auto;
   }
 
@@ -374,7 +374,8 @@
   }
 
   /* Responsive Design */
-  @media (max-width: 968px) {
+  /* Desktop breakpoint - see tokens.css for breakpoint documentation */
+  @media (max-width: 1024px) {
     .players-view {
       grid-template-columns: 1fr;
     }
@@ -394,6 +395,7 @@
     }
   }
 
+  /* Tablet breakpoint - see tokens.css for breakpoint documentation */
   @media (max-width: 768px) {
     .mode-toggle {
       max-width: 100%;

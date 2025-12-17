@@ -146,4 +146,29 @@
   --z-modal: 1000;
   --z-popover: 1100;
   --z-tooltip: 1200;
+
+  /* ============================================
+     RESPONSIVE BREAKPOINTS
+     ============================================
+     
+     Media queries cannot use CSS custom properties.
+     These values are documented here for consistency.
+     Use these exact pixel values in @media queries:
+     
+     Mobile:  @media (max-width: 600px)
+     Tablet:  @media (max-width: 768px)
+     Desktop: @media (max-width: 1024px)
+     ============================================ */
+
+  /* Container Max Widths */
+  --container-sm: 500px;
+  --container-md: 800px;
+  --container-lg: 1000px;
+  --container-xl: 1200px;
+  --container-2xl: 1400px;
+
+  /* Component-Specific Max Widths */
+  --max-width-qr: 256px;
+  --max-width-card: 250px;
+  --max-width-input: 400px;
 }

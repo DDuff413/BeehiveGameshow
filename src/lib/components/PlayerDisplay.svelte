@@ -189,6 +189,7 @@
   }
 
   /* Responsive styles for leaderboard variant */
+  /* Mobile breakpoint - see tokens.css for breakpoint documentation */
   @media (max-width: 600px) {
     .leaderboard-row {
       grid-template-columns: 1fr;

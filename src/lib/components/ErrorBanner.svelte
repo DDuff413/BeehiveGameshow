@@ -58,16 +58,16 @@
   .error-banner-component {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background-color: #fee;
-    border: 1px solid #fcc;
-    border-radius: 8px;
-    color: #c33;
-    margin-bottom: 16px;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-error-bg);
+    border: 1px solid var(--color-error-border);
+    border-radius: var(--radius-md);
+    color: var(--color-error-text);
+    margin-bottom: var(--space-4);
     margin-top: 0;
-    font-weight: 500;
-    animation: errorSlideDown 0.3s ease-out;
+    font-weight: var(--font-weight-medium);
+    animation: errorSlideDown var(--transition-base) ease-out;
   }
 
   @keyframes errorSlideDown {
@@ -82,27 +82,27 @@
   }
 
   .error-banner-icon {
-    font-size: 1.2rem;
+    font-size: var(--font-size-xl);
     flex-shrink: 0;
   }
 
   .error-banner-text {
     flex: 1;
-    font-size: 0.95rem;
-    line-height: 1.4;
-    color: #c33;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    color: var(--color-error-text);
     margin: 0;
   }
 
   .error-banner-dismiss {
     background: none;
     border: none;
-    color: #c33;
+    color: var(--color-error-text);
     cursor: pointer;
-    font-size: 1.2rem;
-    padding: 4px 8px;
+    font-size: var(--font-size-xl);
+    padding: var(--space-1) var(--space-2);
     opacity: 0.7;
-    transition: opacity 0.2s;
+    transition: opacity var(--transition-fast);
     flex-shrink: 0;
     margin-left: auto;
     line-height: 1;
@@ -113,8 +113,8 @@
   }
 
   .error-banner-dismiss:focus {
-    outline: 2px solid #c33;
+    outline: 2px solid var(--color-error-border);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
   }
 </style>

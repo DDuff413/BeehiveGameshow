@@ -263,36 +263,36 @@
 
 <style>
   .team-card {
-    border: 2px solid #333;
-    border-radius: 8px;
-    padding: 1rem;
-    background: white;
-    margin-bottom: 1rem;
+    border: 2px solid var(--color-text-primary);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    background: var(--color-bg-card);
+    margin-bottom: var(--space-4);
   }
 
   .team-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
   }
 
   .team-header h3 {
     margin: 0;
-    color: #333;
+    color: var(--color-text-primary);
   }
 
   .team-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
 
   .btn-icon {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1.2rem;
-    padding: 0.25rem;
+    font-size: var(--font-size-xl);
+    padding: var(--space-1);
   }
 
   .btn-icon:hover {
@@ -302,51 +302,51 @@
   .team-members {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
 
   .team-footer {
-    margin-top: 1rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #eee;
+    margin-top: var(--space-4);
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-gray-200);
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
   .footer-label {
-    font-weight: bold;
-    color: #555;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-secondary);
   }
 
   .team-points-controls {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
 
   /* Shared Point Button Styles */
   .btn-point {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
+    width: var(--space-7);
+    height: var(--space-7);
+    border-radius: var(--radius-full);
     border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-weight: bold;
-    transition: all 0.2s;
+    font-weight: var(--font-weight-bold);
+    transition: all var(--transition-fast);
     padding: 0;
   }
 
   .btn-point.minus {
-    background: #ffebee;
-    color: #c62828;
+    background: var(--color-danger-light);
+    color: var(--color-danger-dark);
   }
 
   .btn-point.plus {
-    background: #e8f5e9;
-    color: #2e7d32;
+    background: var(--color-success-light);
+    color: var(--color-success-dark);
   }
 
   .btn-point:hover:not(:disabled) {
@@ -357,67 +357,67 @@
   .btn-point:disabled {
     opacity: 0.3;
     cursor: not-allowed;
-    background: #eee;
-    color: #999;
+    background: var(--color-gray-200);
+    color: var(--color-text-tertiary);
   }
 
   .empty-state {
-    color: #666;
+    color: var(--color-text-secondary);
     font-style: italic;
-    margin: 0.5rem 0;
+    margin: var(--space-2) 0;
   }
 
   /* Edit Mode Styles */
   .team-edit {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: var(--space-4);
   }
 
   .edit-header label {
     display: block;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-2);
   }
 
   .edit-header input {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border-medium);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-base);
   }
 
   .edit-players,
   .edit-add-players {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--space-2);
   }
 
   .edit-players h4,
   .edit-add-players h4 {
-    margin: 0 0 0.5rem 0;
-    color: #333;
-    font-size: 1rem;
+    margin: 0 0 var(--space-2) 0;
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
   }
 
   .player-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem;
-    background: #f0f0f0;
-    border-radius: 4px;
+    padding: var(--space-2);
+    background: var(--color-bg-input);
+    border-radius: var(--radius-sm);
   }
 
   .btn-remove {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: var(--font-size-base);
     opacity: 0.5;
-    transition: opacity 0.2s;
+    transition: opacity var(--transition-fast);
   }
 
   .btn-remove:hover,
@@ -431,92 +431,92 @@
 
   .player-add-row {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--space-2);
     align-items: center;
   }
 
   .player-add-row select {
     flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 0.9rem;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border-medium);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
   }
 
   .btn-remove-selection {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: var(--font-size-base);
   }
 
   .btn-add-selection {
-    padding: 0.5rem 1rem;
-    background: #4caf50;
-    color: white;
+    padding: var(--space-2) var(--space-4);
+    background: var(--color-success);
+    color: var(--color-text-inverse);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
   }
 
   .btn-add-selection:hover:not(:disabled) {
-    background: #45a049;
+    background: var(--color-success-dark);
   }
 
   .btn-add-selection:disabled {
-    background: #ccc;
+    background: var(--color-border-medium);
     cursor: not-allowed;
   }
 
   .info-text {
-    font-size: 0.85rem;
-    color: #666;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
     font-style: italic;
     margin: 0;
   }
 
   .error-message {
-    background: #ffebee;
-    color: #c62828;
-    padding: 0.75rem;
-    border-radius: 4px;
-    border: 1px solid #ef5350;
-    font-size: 0.9rem;
+    background: var(--color-error-bg);
+    color: var(--color-error-text);
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-error-border);
+    font-size: var(--font-size-sm);
   }
 
   .edit-actions {
     display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
   }
 
   .btn {
-    padding: 0.75rem 1.5rem;
+    padding: var(--space-3) var(--space-6);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-size: 1rem;
-    font-weight: bold;
-    transition: background 0.2s;
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    transition: background var(--transition-fast);
   }
 
   .btn-success {
-    background: #4caf50;
-    color: white;
+    background: var(--color-success);
+    color: var(--color-text-inverse);
   }
 
   .btn-success:hover:not(:disabled) {
-    background: #45a049;
+    background: var(--color-success-dark);
   }
 
   .btn-secondary {
-    background: #757575;
-    color: white;
+    background: var(--color-gray-600);
+    color: var(--color-text-inverse);
   }
 
   .btn-secondary:hover:not(:disabled) {
-    background: #616161;
+    background: var(--color-gray-700);
   }
 
   .btn:disabled {

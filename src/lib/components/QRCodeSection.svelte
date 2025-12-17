@@ -19,10 +19,10 @@
   }
 
   .qr-code-container {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    margin: 20px 0;
+    background: var(--color-bg-card);
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    margin: var(--space-5) 0;
     display: inline-block;
   }
 
@@ -33,8 +33,8 @@
   }
 
   .join-url {
-    font-size: 0.9rem;
-    color: #666;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
     word-break: break-all;
   }
 </style>

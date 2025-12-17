@@ -29,46 +29,46 @@
     top: 0;
     left: 0;
     right: 0;
-    padding: 12px 20px;
+    padding: var(--space-3) var(--space-5);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    font-weight: 500;
-    z-index: 1000;
-    animation: slideDown 0.3s ease;
+    gap: var(--space-2);
+    font-weight: var(--font-weight-medium);
+    z-index: var(--z-fixed);
+    animation: slideDown var(--transition-base) ease;
   }
 
   .connection-banner.error {
-    background: #dc3545;
-    color: white;
+    background: var(--color-danger);
+    color: var(--color-text-inverse);
   }
 
   .connection-banner.warning {
-    background: #ffc107;
-    color: #000;
+    background: var(--color-warning);
+    color: var(--color-text-primary);
   }
 
   .banner-icon {
-    font-size: 1.2em;
+    font-size: var(--font-size-xl);
   }
 
   .banner-content {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: var(--space-4);
   }
 
   .retry-btn {
-    background: white;
-    color: #dc3545;
+    background: var(--color-bg-card);
+    color: var(--color-danger);
     border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    font-weight: 600;
-    font-size: 0.9em;
-    transition: opacity 0.2s;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    transition: opacity var(--transition-fast);
   }
 
   .retry-btn:hover {

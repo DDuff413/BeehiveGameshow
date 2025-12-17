@@ -226,11 +226,6 @@
   }
 
   .qr-desktop {
-    background: var(--color-bg-card);
-    border-radius: var(--radius-lg);
-    padding: var(--space-8);
-    box-shadow: var(--shadow-md);
-    text-align: center;
     position: sticky;
     top: var(--space-5);
   }
@@ -387,11 +382,6 @@
     .qr-mobile {
       display: block;
       margin-top: var(--space-8);
-      background: var(--color-bg-card);
-      border-radius: var(--radius-lg);
-      padding: var(--space-8);
-      box-shadow: var(--shadow-md);
-      text-align: center;
     }
   }
 
